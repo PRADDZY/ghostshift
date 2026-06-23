@@ -1,0 +1,16 @@
+{
+  "name": "@ghostshift/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "node -e \"process.exit(0)\""
+  },
+  "dependencies": {
+    "@ghostshift/shared": "workspace:*",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

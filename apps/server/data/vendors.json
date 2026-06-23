@@ -1,0 +1,38 @@
+[
+  {
+    "id": "northstar-data",
+    "name": "Northstar Data Co.",
+    "category": "infra",
+    "tagline": "Low-latency API infrastructure for agent crews.",
+    "payoutAddress": "casper-test:01-northstar",
+    "trialPriceMotes": 1800000000,
+    "qualityScore": 93,
+    "reliability": 0.97,
+    "deliveryMode": "fresh",
+    "sampleArtifactUrl": "https://vendors.ghostshift.local/northstar/trial.json"
+  },
+  {
+    "id": "quartz-scan",
+    "name": "Quartz Scan",
+    "category": "infra",
+    "tagline": "Cheap telemetry with slow vendor responses.",
+    "payoutAddress": "casper-test:02-quartz",
+    "trialPriceMotes": 1200000000,
+    "qualityScore": 81,
+    "reliability": 0.7,
+    "deliveryMode": "stale",
+    "sampleArtifactUrl": "https://vendors.ghostshift.local/quartz/trial.json"
+  },
+  {
+    "id": "relay-ops",
+    "name": "Relay Ops",
+    "category": "infra",
+    "tagline": "Bold promises, messy artifacts.",
+    "payoutAddress": "casper-test:03-relay",
+    "trialPriceMotes": 1600000000,
+    "qualityScore": 74,
+    "reliability": 0.76,
+    "deliveryMode": "malformed",
+    "sampleArtifactUrl": "https://vendors.ghostshift.local/relay/trial.json"
+  }
+]
