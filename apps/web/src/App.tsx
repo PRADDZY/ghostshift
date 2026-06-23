@@ -10,6 +10,8 @@ const initialInput: MissionInput = {
   categoryCaps: { infra: 6_500_000_000 }
 };
 
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+
 function formatMotes(value: number): string {
   return new Intl.NumberFormat("en-US").format(value);
 }
@@ -29,7 +31,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
 
   async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const response = await fetch(path, init);
+    const response = await fetch(`${apiBase}${path}`, init);
     const body = (await response.json()) as T | { error: string };
     if (!response.ok) {
       throw new Error("error" in body ? body.error : "Request failed.");
@@ -276,6 +278,13 @@ export function App() {
                 </div>
                 <span>{new Date(receipt.recordedAt).toLocaleString()}</span>
                 <p>{receipt.proofHash.slice(0, 22)}...</p>
+                {receipt.explorerUrl ? (
+                  <a href={receipt.explorerUrl} target="_blank" rel="noreferrer">
+                    Open Casper deploy
+                  </a>
+                ) : (
+                  <p className="empty">Mock receipt</p>
+                )}
               </article>
             )) ?? <p className="empty">The bookkeeper has not written any receipts yet.</p>}
           </div>

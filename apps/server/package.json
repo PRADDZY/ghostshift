@@ -5,6 +5,12 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "casper:deploy-contract": "tsx scripts/deploy-ledger.ts",
+    "casper:keygen": "tsx scripts/create-demo-key.ts",
+    "cf:d1:migrate": "wrangler d1 migrations apply ghostshift --remote",
+    "cf:d1:migrate:local": "wrangler d1 migrations apply ghostshift --local",
+    "cf:deploy": "wrangler deploy",
+    "cf:dev": "wrangler dev",
     "dev": "tsx watch src/index.ts",
     "mcp": "tsx src/mcp.ts",
     "test": "tsx --test src/**/*.test.ts"
@@ -14,5 +20,8 @@
     "@modelcontextprotocol/sdk": "1.29.0",
     "casper-js-sdk": "5.0.12",
     "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.104.0"
   }
 }

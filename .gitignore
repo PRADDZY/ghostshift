@@ -2,13 +2,16 @@
 .agents/
 .codex/
 node_modules/
+.wrangler/
 dist/
 coverage/
 .env
 .env.*
 !.env.example
+apps/server/.dev.vars
 *.log
 *.out.log
 *.err.log
 *.tsbuildinfo
+contracts/ghostshift-ledger/keys/
 contracts/ghostshift-ledger/target/

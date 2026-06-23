@@ -1,5 +1,4 @@
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { join } from "node:path";
 
 import type { MissionInput } from "@ghostshift/shared";
 
@@ -7,9 +6,6 @@ import { createLedgerAdapter, type GhostShiftEnv } from "./domain/ledger.js";
 import { MissionService } from "./domain/mission-service.js";
 import { D1MissionStore, FileMissionStore, type D1DatabaseLike } from "./domain/store.js";
 import { VendorMarket } from "./domain/vendors.js";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const dataDir = join(here, "..", "data");
 
 export interface AppContext {
   readonly ledgerMode: "mock" | "casper";
@@ -19,6 +15,10 @@ export interface AppContext {
 
 function hasD1Binding(value: unknown): value is D1DatabaseLike {
   return Boolean(value && typeof value === "object" && "prepare" in value);
+}
+
+function resolveDefaultMissionPath(): string {
+  return join(process.cwd(), "data", "missions.json");
 }
 
 function createCorsHeaders() {
@@ -46,8 +46,9 @@ async function parseJson<T>(request: Request): Promise<T> {
 }
 
 export function createAppContext(env: GhostShiftEnv = process.env as GhostShiftEnv): AppContext {
-  const missionPath = env.GHOSTSHIFT_MISSIONS_PATH ?? join(dataDir, "missions.json");
-  const store = hasD1Binding(env.DB) ? new D1MissionStore(env.DB) : new FileMissionStore(missionPath);
+  const store = hasD1Binding(env.DB)
+    ? new D1MissionStore(env.DB)
+    : new FileMissionStore(env.GHOSTSHIFT_MISSIONS_PATH ?? resolveDefaultMissionPath());
   const market = new VendorMarket();
   const ledger = createLedgerAdapter(env);
   const service = new MissionService(store, market, ledger);

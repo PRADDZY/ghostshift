@@ -19,9 +19,9 @@ The current demo mission is vendor onboarding for infrastructure providers.
 - `packages/shared` - shared mission, vendor, spend, and receipt types
 - `contracts/ghostshift-ledger` - minimal Casper receipt contract scaffold
 
-## Run it
+## Local Node demo
 
-```bash
+```powershell
 pnpm install
 pnpm dev:server
 pnpm dev:web
@@ -29,11 +29,35 @@ pnpm dev:web
 
 Then open `http://localhost:4173`.
 
+## Cloudflare Worker demo
+
+1. Copy `apps/server/.dev.vars.example` to `apps/server/.dev.vars` if you want local Worker secrets or non-default values.
+2. Apply the local D1 schema:
+
+```powershell
+pnpm cf:d1:migrate:local
+```
+
+3. Start the Worker API:
+
+```powershell
+pnpm dev:worker
+```
+
+4. In a second shell, point the web app at the Worker instead of the Node server:
+
+```powershell
+$env:VITE_API_BASE_URL='http://127.0.0.1:8787'
+pnpm dev:web
+```
+
+The Worker path has been verified locally with D1-backed mission create, run, approve, and receipt writes.
+
 ## MCP mode
 
 Run the MCP server over stdio:
 
-```bash
+```powershell
 pnpm dev:mcp
 ```
 
@@ -47,44 +71,68 @@ Available tools:
 
 ## Verification
 
-```bash
+```powershell
 pnpm test
 pnpm build
 ```
 
-## Ledger modes
+## Casper ledger mode
 
 GhostShift is explicit about ledger mode:
 
 - `mock` is the default and generates deterministic receipt hashes for local demo/testing.
-- `casper` activates only when all required environment variables are provided.
+- `casper` activates only when RPC, signer key material, and a deployed contract hash are all present.
 
 Set these in `.env` for live-mode experiments:
 
-```bash
+```text
 GHOSTSHIFT_LEDGER_MODE=casper
 GHOSTSHIFT_RPC_URL=https://rpc.testnet.casperlabs.io/rpc
 GHOSTSHIFT_CHAIN_NAME=casper-test
-GHOSTSHIFT_SECRET_KEY_PATH=...
-GHOSTSHIFT_LEDGER_CONTRACT_HASH=...
+GHOSTSHIFT_SECRET_KEY_PATH=contracts/ghostshift-ledger/keys/secret_key.pem
+GHOSTSHIFT_LEDGER_CONTRACT_HASH=hash-...
+GHOSTSHIFT_LEDGER_PAYMENT_MOTES=3000000000
 ```
+
+Useful helpers:
+
+- `pnpm casper:keygen` writes an ignored Ed25519 keypair to `contracts/ghostshift-ledger/keys/`.
+- `pnpm casper:deploy-contract` installs the Wasm contract and prints the resulting `GHOSTSHIFT_LEDGER_CONTRACT_HASH=...` line once the deploy lands.
+- `pnpm deploy:worker` publishes the Worker once Wrangler auth and the real D1 database ID are configured.
 
 ## Contract build
 
-Install the wasm target once:
+The contract now builds on this Windows host. The repo is pinned to the same newer Casper contract stack that compiled successfully here:
 
-```bash
-rustup target add wasm32-unknown-unknown
+- `casper-contract = 5.1.1`
+- `casper-types = 6.0.1`
+- `nightly-2024-07-31-x86_64-pc-windows-gnu`
+
+Install the wasm target for that toolchain once:
+
+```powershell
+rustup target add wasm32-unknown-unknown --toolchain nightly-2024-07-31-x86_64-pc-windows-gnu
 ```
 
-Build the Casper receipt contract:
+Build it with:
 
-```bash
-cargo build --manifest-path contracts/ghostshift-ledger/Cargo.toml --release --target wasm32-unknown-unknown
+```powershell
+pnpm casper:build-contract
 ```
 
-On Windows with the `x86_64-pc-windows-msvc` Rust toolchain, this also needs Visual Studio Build Tools or equivalent Windows SDK libraries on the host. The current workspace does not have those linker libraries installed, so contract compilation is the one verified blocker left on this machine.
+The Windows helper script auto-adds a WinLibs `mingw64/bin` install to `PATH` when it finds one. This workspace was verified with that flow plus the `wasm32-unknown-unknown` target installed for the pinned nightly toolchain.
+
+## Cloudflare deploy checklist
+
+- Update `apps/server/wrangler.jsonc` with the real D1 database IDs.
+- Put live private key material into Wrangler secrets instead of files:
+  `wrangler secret put GHOSTSHIFT_PRIVATE_KEY_PEM`
+- Apply remote D1 migrations with `pnpm cf:d1:migrate`.
+- Deploy with `pnpm deploy:worker`.
 
 ## Honest status
 
-The local demo and tests run in `mock` ledger mode today. The Casper path is scaffolded and environment-gated, but this repo does not include a funded testnet key or a deployed contract hash, so live testnet settlement still depends on user-supplied credentials and deployment data.
+- Verified here:
+  Node demo, web build, MCP entrypoint, Worker boot, local D1 migration, Worker mission lifecycle, Worker deploy dry-run, and Casper Wasm compilation.
+- Still manual:
+  funding a Casper testnet key, running the real contract install, setting Wrangler auth plus real D1 IDs, and recording a public demo/submission package.

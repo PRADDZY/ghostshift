@@ -1,0 +1,23 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "ghostshift-api",
+  "main": "src/worker.ts",
+  "compatibility_date": "2025-01-24",
+  "compatibility_flags": ["nodejs_compat"],
+  "vars": {
+    "GHOSTSHIFT_LEDGER_MODE": "mock",
+    "GHOSTSHIFT_CHAIN_NAME": "casper-test",
+    "GHOSTSHIFT_RPC_URL": "https://rpc.testnet.casperlabs.io/rpc",
+    "GHOSTSHIFT_PRIVATE_KEY_ALGORITHM": "ed25519",
+    "GHOSTSHIFT_LEDGER_PAYMENT_MOTES": "3000000000"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ghostshift",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "preview_database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ]
+}

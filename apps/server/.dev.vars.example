@@ -1,0 +1,10 @@
+GHOSTSHIFT_LEDGER_MODE=mock
+GHOSTSHIFT_RPC_URL=https://rpc.testnet.casperlabs.io/rpc
+GHOSTSHIFT_CHAIN_NAME=casper-test
+GHOSTSHIFT_PRIVATE_KEY_ALGORITHM=ed25519
+# Only required when GHOSTSHIFT_LEDGER_MODE=casper.
+GHOSTSHIFT_LEDGER_CONTRACT_HASH=hash-...
+GHOSTSHIFT_LEDGER_PAYMENT_MOTES=3000000000
+# For local worker dev only. Use `wrangler secret put GHOSTSHIFT_PRIVATE_KEY_PEM`
+# for remote deployment instead of checking secrets into files.
+GHOSTSHIFT_PRIVATE_KEY_PEM="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"

@@ -1,4 +1,3 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import type { Mission } from "@ghostshift/shared";
@@ -9,11 +8,16 @@ export interface MissionStore {
   save(nextMission: Mission): Promise<void>;
 }
 
+async function loadFs() {
+  return import("node:fs/promises");
+}
+
 export class FileMissionStore implements MissionStore {
   constructor(private readonly filePath: string) {}
 
   async all(): Promise<Mission[]> {
     await this.ensureFile();
+    const { readFile } = await loadFs();
     const raw = await readFile(this.filePath, "utf8");
     return JSON.parse(raw) as Mission[];
   }
@@ -28,10 +32,12 @@ export class FileMissionStore implements MissionStore {
     const next = missions.filter((mission) => mission.id !== nextMission.id);
     next.push(nextMission);
     next.sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+    const { writeFile } = await loadFs();
     await writeFile(this.filePath, JSON.stringify(next, null, 2));
   }
 
   private async ensureFile(): Promise<void> {
+    const { mkdir, readFile, writeFile } = await loadFs();
     await mkdir(dirname(this.filePath), { recursive: true });
     try {
       await readFile(this.filePath, "utf8");

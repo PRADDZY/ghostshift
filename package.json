@@ -5,9 +5,16 @@
   "packageManager": "pnpm@10.10.0",
   "scripts": {
     "build": "pnpm -r build",
+    "casper:build-contract": "powershell -ExecutionPolicy Bypass -File contracts/ghostshift-ledger/build.ps1",
+    "casper:deploy-contract": "pnpm --filter @ghostshift/server casper:deploy-contract",
+    "casper:keygen": "pnpm --filter @ghostshift/server casper:keygen",
+    "cf:d1:migrate": "pnpm --filter @ghostshift/server cf:d1:migrate",
+    "cf:d1:migrate:local": "pnpm --filter @ghostshift/server cf:d1:migrate:local",
     "dev:mcp": "pnpm --filter @ghostshift/shared build && pnpm --filter @ghostshift/server mcp",
     "dev:server": "pnpm --filter @ghostshift/shared build && pnpm --filter @ghostshift/server dev",
+    "dev:worker": "pnpm --filter @ghostshift/server cf:dev",
     "dev:web": "pnpm --filter @ghostshift/shared build && pnpm --filter @ghostshift/web dev",
+    "deploy:worker": "pnpm --filter @ghostshift/server cf:deploy",
     "test": "pnpm --filter @ghostshift/shared build && pnpm -r test"
   },
   "devDependencies": {

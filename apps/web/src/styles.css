@@ -261,6 +261,16 @@ textarea {
   margin-top: 0;
 }
 
+.receipt a {
+  color: var(--slate);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.receipt a:hover {
+  text-decoration: underline;
+}
+
 .role-lead {
   border-left: 6px solid var(--oxide);
 }

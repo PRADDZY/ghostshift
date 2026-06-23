@@ -47,15 +47,18 @@ export interface GhostShiftEnv {
   GHOSTSHIFT_LEDGER_EXPLORER_BASE_URL?: string;
 }
 
-export interface CasperLedgerConfig {
+export interface CasperConnectionConfig {
   readonly rpcUrl: string;
   readonly chainName: string;
-  readonly contractHash: string;
   readonly secretKeyPath?: string;
   readonly privateKeyPem?: string;
   readonly privateKeyAlgorithm: "ed25519" | "secp256k1";
-  readonly paymentMotes: string;
   readonly explorerBaseUrl: string;
+}
+
+export interface CasperLedgerConfig extends CasperConnectionConfig {
+  readonly contractHash: string;
+  readonly paymentMotes: string;
 }
 
 export interface LedgerAdapter {
@@ -81,15 +84,15 @@ function resolveExplorerBaseUrl(chainName: string, env: GhostShiftEnv): string {
     : "https://cspr.live/deploy";
 }
 
-function resolvePrivateKeyAlgorithm(value: string | undefined): CasperLedgerConfig["privateKeyAlgorithm"] {
+function resolvePrivateKeyAlgorithm(value: string | undefined): CasperConnectionConfig["privateKeyAlgorithm"] {
   return value?.toLowerCase() === "secp256k1" ? "secp256k1" : "ed25519";
 }
 
-function asKeyAlgorithm(value: CasperLedgerConfig["privateKeyAlgorithm"]): CasperKeyAlgorithm {
+function asKeyAlgorithm(value: CasperConnectionConfig["privateKeyAlgorithm"]): CasperKeyAlgorithm {
   return value === "secp256k1" ? KeyAlgorithm.SECP256K1 : KeyAlgorithm.ED25519;
 }
 
-async function readPrivateKeyPem(config: CasperLedgerConfig): Promise<string> {
+async function readPrivateKeyPem(config: CasperConnectionConfig): Promise<string> {
   if (config.privateKeyPem?.trim()) {
     return config.privateKeyPem.trim();
   }
@@ -102,29 +105,40 @@ async function readPrivateKeyPem(config: CasperLedgerConfig): Promise<string> {
   return readFile(config.secretKeyPath, "utf8");
 }
 
-export async function loadCasperPrivateKey(config: CasperLedgerConfig): Promise<CasperPrivateKey> {
+export async function loadCasperPrivateKey(config: CasperConnectionConfig): Promise<CasperPrivateKey> {
   return PrivateKey.fromPem(await readPrivateKeyPem(config), asKeyAlgorithm(config.privateKeyAlgorithm));
 }
 
-export function resolveCasperLedgerConfig(env: GhostShiftEnv): CasperLedgerConfig | undefined {
+export function resolveCasperConnectionConfig(env: GhostShiftEnv): CasperConnectionConfig | undefined {
   if (env.GHOSTSHIFT_LEDGER_MODE !== "casper") {
     return undefined;
   }
 
   const hasKey = Boolean(env.GHOSTSHIFT_PRIVATE_KEY_PEM?.trim() || env.GHOSTSHIFT_SECRET_KEY_PATH?.trim());
-  if (!env.GHOSTSHIFT_RPC_URL || !env.GHOSTSHIFT_CHAIN_NAME || !env.GHOSTSHIFT_LEDGER_CONTRACT_HASH || !hasKey) {
+  if (!env.GHOSTSHIFT_RPC_URL || !env.GHOSTSHIFT_CHAIN_NAME || !hasKey) {
     return undefined;
   }
 
   return {
     rpcUrl: env.GHOSTSHIFT_RPC_URL,
     chainName: env.GHOSTSHIFT_CHAIN_NAME,
-    contractHash: normaliseContractHash(env.GHOSTSHIFT_LEDGER_CONTRACT_HASH),
     secretKeyPath: env.GHOSTSHIFT_SECRET_KEY_PATH,
     privateKeyPem: env.GHOSTSHIFT_PRIVATE_KEY_PEM,
     privateKeyAlgorithm: resolvePrivateKeyAlgorithm(env.GHOSTSHIFT_PRIVATE_KEY_ALGORITHM),
-    paymentMotes: env.GHOSTSHIFT_LEDGER_PAYMENT_MOTES?.trim() || "3000000000",
     explorerBaseUrl: resolveExplorerBaseUrl(env.GHOSTSHIFT_CHAIN_NAME, env)
+  };
+}
+
+export function resolveCasperLedgerConfig(env: GhostShiftEnv): CasperLedgerConfig | undefined {
+  const connection = resolveCasperConnectionConfig(env);
+  if (!connection || !env.GHOSTSHIFT_LEDGER_CONTRACT_HASH) {
+    return undefined;
+  }
+
+  return {
+    ...connection,
+    contractHash: normaliseContractHash(env.GHOSTSHIFT_LEDGER_CONTRACT_HASH),
+    paymentMotes: env.GHOSTSHIFT_LEDGER_PAYMENT_MOTES?.trim() || "3000000000"
   };
 }
 
