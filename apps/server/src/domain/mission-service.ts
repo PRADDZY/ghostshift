@@ -12,10 +12,10 @@ import type {
 } from "@ghostshift/shared";
 import { isTerminalStatus } from "@ghostshift/shared";
 
-import type { LedgerAdapter } from "./ledger";
-import { createProofHash } from "./ledger";
-import type { MissionStore } from "./store";
-import type { VendorMarket } from "./vendors";
+import type { LedgerAdapter } from "./ledger.js";
+import { createProofHash } from "./ledger.js";
+import type { MissionStore } from "./store.js";
+import type { VendorMarket } from "./vendors.js";
 
 export class MissionService {
   constructor(
@@ -63,6 +63,44 @@ export class MissionService {
     return this.market.list(mission.preferredCategory);
   }
 
+  async buyTrial(missionId: string, vendorId: string): Promise<{
+    mission: Mission;
+    delivery: DeliveryPayload;
+    verdict: VerificationVerdict;
+  }> {
+    const mission = await this.requireMission(missionId);
+    if (isTerminalStatus(mission.status)) {
+      throw new Error("Mission already closed.");
+    }
+
+    const vendor = await this.market.get(vendorId);
+    const delivery = await this.buyTrialService(mission, vendor);
+    const verdict = this.verifyDelivery(delivery);
+
+    mission.verdicts.push(verdict);
+    mission.updatedAt = new Date().toISOString();
+    mission.events.push(
+      this.makeEvent(
+        "verifier",
+        verdict.accepted ? "trial-accepted" : "trial-rejected",
+        verdict.reason,
+        { vendorId: vendor.id, score: verdict.score }
+      )
+    );
+
+    await this.store.save(mission);
+    return { mission, delivery, verdict };
+  }
+
+  async getVendorVerdict(missionId: string, vendorId: string): Promise<VerificationVerdict> {
+    const mission = await this.requireMission(missionId);
+    const verdict = [...mission.verdicts].reverse().find((candidate) => candidate.vendorId === vendorId);
+    if (!verdict) {
+      throw new Error("No trial verdict exists for that vendor yet.");
+    }
+    return verdict;
+  }
+
   async runMission(missionId: string): Promise<Mission> {
     const mission = await this.requireMission(missionId);
     if (isTerminalStatus(mission.status)) {
@@ -88,17 +126,14 @@ export class MissionService {
       );
 
       try {
-        const delivery = await this.buyTrialService(mission, vendor);
-        const verdict = this.verifyDelivery(delivery);
-        mission.verdicts.push(verdict);
-        mission.events.push(
-          this.makeEvent(
-            "verifier",
-            verdict.accepted ? "trial-accepted" : "trial-rejected",
-            verdict.reason,
-            { vendorId: vendor.id, score: verdict.score }
-          )
-        );
+        await this.buyTrial(mission.id, vendor.id);
+        const refreshed = await this.requireMission(mission.id);
+        mission.treasuryRemainingMotes = refreshed.treasuryRemainingMotes;
+        mission.updatedAt = refreshed.updatedAt;
+        mission.spends = refreshed.spends;
+        mission.verdicts = refreshed.verdicts;
+        mission.receipts = refreshed.receipts;
+        mission.events = refreshed.events;
       } catch (error) {
         mission.events.push(
           this.makeEvent("buyer", "trial-failed", error instanceof Error ? error.message : "Trial failed.", {

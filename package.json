@@ -5,6 +5,7 @@
   "packageManager": "pnpm@10.10.0",
   "scripts": {
     "build": "pnpm -r build",
+    "dev:mcp": "pnpm --filter @ghostshift/shared build && pnpm --filter @ghostshift/server mcp",
     "dev:server": "pnpm --filter @ghostshift/shared build && pnpm --filter @ghostshift/server dev",
     "dev:web": "pnpm --filter @ghostshift/shared build && pnpm --filter @ghostshift/web dev",
     "test": "pnpm --filter @ghostshift/shared build && pnpm -r test"

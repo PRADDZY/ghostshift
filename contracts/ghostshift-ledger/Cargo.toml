@@ -1,0 +1,17 @@
+[package]
+name = "ghostshift-ledger"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "ghostshift_ledger"
+crate-type = ["cdylib"]
+
+[dependencies]
+casper-contract = "5.1.1"
+casper-types = "7.0.0"
+
+[profile.release]
+lto = true
+codegen-units = 1
+opt-level = "z"

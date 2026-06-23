@@ -8,4 +8,7 @@ coverage/
 .env.*
 !.env.example
 *.log
+*.out.log
+*.err.log
 *.tsbuildinfo
+contracts/ghostshift-ledger/target/

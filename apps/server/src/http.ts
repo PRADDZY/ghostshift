@@ -5,10 +5,10 @@ import { dirname, join } from "node:path";
 
 import type { MissionInput } from "@ghostshift/shared";
 
-import { createLedgerAdapter } from "./domain/ledger";
-import { MissionService } from "./domain/mission-service";
-import { MissionStore } from "./domain/store";
-import { VendorMarket } from "./domain/vendors";
+import { createLedgerAdapter } from "./domain/ledger.js";
+import { MissionService } from "./domain/mission-service.js";
+import { MissionStore } from "./domain/store.js";
+import { VendorMarket } from "./domain/vendors.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const dataDir = join(here, "..", "data");

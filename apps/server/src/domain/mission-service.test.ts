@@ -4,10 +4,10 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createLedgerAdapter } from "./ledger";
-import { MissionService } from "./mission-service";
-import { MissionStore } from "./store";
-import { VendorMarket } from "./vendors";
+import { createLedgerAdapter } from "./ledger.js";
+import { MissionService } from "./mission-service.js";
+import { MissionStore } from "./store.js";
+import { VendorMarket } from "./vendors.js";
 
 async function makeService() {
   const tempDir = await mkdtemp(join(tmpdir(), "ghostshift-"));
