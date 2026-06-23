@@ -6,19 +6,19 @@ import test from "node:test";
 
 import { createLedgerAdapter } from "./ledger.js";
 import { MissionService } from "./mission-service.js";
-import { MissionStore } from "./store.js";
+import { FileMissionStore } from "./store.js";
 import { VendorMarket } from "./vendors.js";
 
 async function makeService() {
   const tempDir = await mkdtemp(join(tmpdir(), "ghostshift-"));
   const missionFile = join(tempDir, "missions.json");
-  const vendorFile = join(tempDir, "vendors.json");
 
   await writeFile(missionFile, "[]\n");
-  await writeFile(
-    vendorFile,
-    JSON.stringify(
-      [
+
+  return {
+    service: new MissionService(
+      new FileMissionStore(missionFile),
+      new VendorMarket([
         {
           id: "alpha",
           name: "Alpha",
@@ -55,16 +55,7 @@ async function makeService() {
           deliveryMode: "malformed",
           sampleArtifactUrl: "https://broken.example/trial.json"
         }
-      ],
-      null,
-      2
-    )
-  );
-
-  return {
-    service: new MissionService(
-      new MissionStore(missionFile),
-      new VendorMarket(vendorFile),
+      ]),
       createLedgerAdapter({ GHOSTSHIFT_LEDGER_MODE: "mock" })
     ),
     missionFile

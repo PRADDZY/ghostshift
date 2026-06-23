@@ -1,14 +1,13 @@
-import { readFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 
 import type { DeliveryPayload, PaymentRequirement, Vendor } from "@ghostshift/shared";
+import { vendorCatalog } from "./vendor-catalog.js";
 
 export class VendorMarket {
-  constructor(private readonly vendorFilePath: string) {}
+  constructor(private readonly vendors: Vendor[] = vendorCatalog) {}
 
   async list(category?: string): Promise<Vendor[]> {
-    const vendors = JSON.parse(await readFile(this.vendorFilePath, "utf8")) as Vendor[];
-    return category ? vendors.filter((vendor) => vendor.category === category) : vendors;
+    return category ? this.vendors.filter((vendor) => vendor.category === category) : this.vendors;
   }
 
   async get(vendorId: string): Promise<Vendor> {
