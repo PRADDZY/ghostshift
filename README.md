@@ -87,7 +87,7 @@ Set these in `.env` for live-mode experiments:
 
 ```text
 GHOSTSHIFT_LEDGER_MODE=casper
-GHOSTSHIFT_RPC_URL=https://rpc.testnet.casperlabs.io/rpc
+GHOSTSHIFT_RPC_URL=https://node.testnet.casper.network/rpc
 GHOSTSHIFT_CHAIN_NAME=casper-test
 GHOSTSHIFT_SECRET_KEY_PATH=contracts/ghostshift-ledger/keys/secret_key.pem
 GHOSTSHIFT_LEDGER_CONTRACT_HASH=hash-...

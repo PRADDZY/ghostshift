@@ -1,5 +1,5 @@
 GHOSTSHIFT_LEDGER_MODE=mock
-GHOSTSHIFT_RPC_URL=https://rpc.testnet.casperlabs.io/rpc
+GHOSTSHIFT_RPC_URL=https://node.testnet.casper.network/rpc
 GHOSTSHIFT_CHAIN_NAME=casper-test
 GHOSTSHIFT_PRIVATE_KEY_ALGORITHM=ed25519
 # Only required when GHOSTSHIFT_LEDGER_MODE=casper.
