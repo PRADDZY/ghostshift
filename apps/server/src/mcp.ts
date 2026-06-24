@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as z from "zod/v4";
 
+import { defaultLaunchStackMandate, launchStackLanes, launchStackTemplateId } from "@ghostshift/shared";
 import { createAppContext } from "./app.js";
 
 const context = createAppContext();
@@ -137,6 +138,53 @@ server.registerTool(
         }
       ],
       structuredContent: { mission: asStructuredContent(mission) }
+    };
+  }
+);
+
+server.registerTool(
+  "source_launch_stack",
+  {
+    description: "Source a launch-day infra stack under a guardrailed mandate and return a structured report.",
+    inputSchema: {
+      companyName: z.string().min(3),
+      brief: z.string().min(12),
+      totalBudgetMotes: z.number().int().positive(),
+      requiredLanes: z.array(z.string().min(2)).default([...launchStackLanes]),
+      maxTrialSpendMotes: z.number().int().positive().default(defaultLaunchStackMandate.maxTrialSpendMotes),
+      laneCaps: z.record(z.string(), z.number().int().positive()).optional()
+    }
+  },
+  async ({ companyName, brief, totalBudgetMotes, requiredLanes, maxTrialSpendMotes, laneCaps }) => {
+    const mission = await context.service.createMission({
+      companyName,
+      brief,
+      preferredCategory: "infra",
+      totalBudgetMotes,
+      categoryCaps: { infra: totalBudgetMotes },
+      stackTemplateId: launchStackTemplateId,
+      requiredLanes,
+      mandate: {
+        maxTrialSpendMotes,
+        laneCaps: laneCaps ?? Object.fromEntries(requiredLanes.map((lane) => [lane, defaultLaunchStackMandate.laneCaps[lane] ?? maxTrialSpendMotes])),
+        requireFinalApproval: true
+      }
+    });
+
+    await context.service.runMission(mission.id);
+    const report = await context.service.getMissionReport(mission.id);
+
+    return {
+      content: [
+        {
+          type: "text",
+          text:
+            report.mission.status === "review"
+              ? `${report.mission.companyName} sourced a launch stack across ${report.lanes.length} lanes.`
+              : `${report.mission.companyName} stopped with ${report.blockers.length} blocker(s).`
+        }
+      ],
+      structuredContent: { report: asStructuredContent(report) }
     };
   }
 );

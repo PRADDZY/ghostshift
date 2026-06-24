@@ -6,23 +6,55 @@ export type LedgerMode = "mock" | "casper";
 
 export type SpendStatus = "quoted" | "paid" | "delivered" | "approved" | "rejected";
 
+export interface ProcurementMandate {
+  maxTrialSpendMotes: number;
+  laneCaps: Record<string, number>;
+  requireFinalApproval: boolean;
+  allowedVendorsByLane?: Record<string, string[]>;
+}
+
+export const launchStackTemplateId = "agent-app-launch";
+export const launchStackLanes = ["browser", "telemetry", "auth", "knowledge"] as const;
+export type LaunchStackLane = (typeof launchStackLanes)[number];
+
+export const launchStackLaneCaps: Record<LaunchStackLane, number> = {
+  browser: 1_700_000_000,
+  telemetry: 1_400_000_000,
+  auth: 1_600_000_000,
+  knowledge: 1_800_000_000
+};
+
+export const defaultLaunchStackMandate: ProcurementMandate = {
+  maxTrialSpendMotes: 1_800_000_000,
+  laneCaps: launchStackLaneCaps,
+  requireFinalApproval: true
+};
+
 export interface MissionInput {
   companyName: string;
   brief: string;
   preferredCategory: string;
   totalBudgetMotes: number;
   categoryCaps: Record<string, number>;
+  stackTemplateId?: string;
+  requiredLanes?: string[];
+  mandate?: ProcurementMandate;
 }
 
 export interface Vendor {
   id: string;
   name: string;
   category: string;
+  lane: string;
   tagline: string;
   payoutAddress: string;
   trialPriceMotes: number;
   qualityScore: number;
   reliability: number;
+  setupMinutes: number;
+  securityGrade: string;
+  supportsMcp: boolean;
+  supportsX402: boolean;
   deliveryMode: "fresh" | "stale" | "malformed";
   sampleArtifactUrl: string;
 }
@@ -71,6 +103,7 @@ export interface SpendEvent {
   role: AgentRole;
   amountMotes: number;
   category: string;
+  lane: string;
   status: SpendStatus;
   requirementId: string;
   deliveryId?: string;
@@ -92,13 +125,19 @@ export interface Mission {
   companyName: string;
   brief: string;
   preferredCategory: string;
+  stackTemplateId?: string;
+  requiredLanes: string[];
   status: MissionStatus;
   totalBudgetMotes: number;
   treasuryRemainingMotes: number;
   categoryCaps: Record<string, number>;
+  mandate: ProcurementMandate;
   ledgerMode: LedgerMode;
   approvedVendorId?: string;
   recommendedVendorId?: string;
+  recommendedVendorIdsByLane: Record<string, string>;
+  approvedVendorIdsByLane: Record<string, string>;
+  blockers: string[];
   vendorIdsSeen: string[];
   events: MissionEvent[];
   spends: SpendEvent[];
@@ -111,6 +150,37 @@ export interface Mission {
 export interface MissionView {
   mission: Mission;
   vendors: Vendor[];
+}
+
+export interface MissionVendorReport {
+  vendorId: string;
+  name: string;
+  lane: string;
+  trialPriceMotes: number;
+  securityGrade: string;
+  supportsMcp: boolean;
+  supportsX402: boolean;
+  verdict?: VerificationVerdict;
+}
+
+export interface ProcurementLaneReport {
+  lane: string;
+  recommendedVendorId?: string;
+  approvedVendorId?: string;
+  blockedReason?: string;
+  candidates: MissionVendorReport[];
+}
+
+export interface MissionReport {
+  mission: Mission;
+  lanes: ProcurementLaneReport[];
+  spendSummary: {
+    totalBudgetMotes: number;
+    spentMotes: number;
+    remainingMotes: number;
+  };
+  receipts: LedgerReceipt[];
+  blockers: string[];
 }
 
 export function isTerminalStatus(status: MissionStatus): boolean {

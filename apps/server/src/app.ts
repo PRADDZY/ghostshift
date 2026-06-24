@@ -86,6 +86,16 @@ export async function handleAppRequest(request: Request, context: AppContext): P
       return json(await context.service.createMission(input), 201);
     }
 
+    if (
+      request.method === "GET" &&
+      segments[0] === "api" &&
+      segments[1] === "missions" &&
+      segments[2] &&
+      segments[3] === "report"
+    ) {
+      return json(await context.service.getMissionReport(segments[2]));
+    }
+
     if (request.method === "GET" && segments[0] === "api" && segments[1] === "missions" && segments[2]) {
       return json(await context.service.getMissionView(segments[2]));
     }
