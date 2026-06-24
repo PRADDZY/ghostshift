@@ -148,7 +148,32 @@ textarea {
   align-items: end;
 }
 
+.cap-grid,
+.lane-cap-grid,
+.mandate-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.cap-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.lane-cap-grid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.template-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(17, 16, 13, 0.05);
+}
+
 .form-row button,
+.hero-card > button,
 .control-strip button,
 .vendor-card button {
   border-radius: 16px;
@@ -159,12 +184,14 @@ textarea {
 }
 
 .form-row button:hover,
+.hero-card > button:hover,
 .control-strip button:hover,
 .vendor-card button:hover {
   transform: translateY(-1px);
 }
 
 .form-row button:disabled,
+.hero-card > button:disabled,
 .control-strip button:disabled,
 .vendor-card button:disabled {
   opacity: 0.45;
@@ -185,12 +212,16 @@ textarea {
   margin-top: 24px;
   display: grid;
   gap: 18px;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .metric-card {
   border-radius: 24px;
   padding: 20px 22px;
+}
+
+.metric-card.mini {
+  background: rgba(255, 255, 255, 0.34);
 }
 
 .metric-card p {
@@ -222,6 +253,18 @@ textarea {
   justify-content: space-between;
   align-items: baseline;
   margin-bottom: 18px;
+}
+
+.stack-list,
+.lane-stack {
+  display: grid;
+  gap: 14px;
+}
+
+.stack-list div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .timeline,
@@ -297,6 +340,54 @@ textarea {
   gap: 16px;
 }
 
+.lane-section {
+  display: grid;
+  gap: 16px;
+}
+
+.lane-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: baseline;
+}
+
+.lane-header p,
+.lane-header strong,
+.template-chip span,
+.template-chip strong {
+  margin: 0;
+}
+
+.signal-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.pill {
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(17, 16, 13, 0.08);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.vendor-card.good {
+  border-color: rgba(47, 107, 63, 0.34);
+}
+
+.vendor-card.winner {
+  border-color: rgba(197, 159, 77, 0.9);
+  box-shadow: inset 0 0 0 1px rgba(197, 159, 77, 0.5);
+}
+
+.vendor-card.bad {
+  border-color: rgba(138, 67, 29, 0.34);
+}
+
 .vendor-card h2 {
   margin: 4px 0 0;
   font-size: 1.25rem;
@@ -329,6 +420,12 @@ textarea {
   .hero,
   .overview-grid,
   .vendor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cap-grid,
+  .lane-cap-grid,
+  .mandate-grid {
     grid-template-columns: 1fr;
   }
 

@@ -1,16 +1,16 @@
 # GhostShift
 
-GhostShift is a Casper-native pop-up company for agents. You open a temporary company with a capped treasury, let specialist agents scout and buy vendor trials under hard spend rules, and dissolve the company with a permanent ledger trail.
+GhostShift is a Casper-native launch-day infra buying desk for agents. You open a temporary company with a capped treasury, let specialist agents source the browser, telemetry, auth, and knowledge stack under a signed mandate, and dissolve the desk with a permanent ledger trail.
 
 ## What it does
 
-- `Lead` opens a mission and defines the treasury.
-- `Scout` short-lists vendors from a local 402-style market.
-- `Buyer` pays for vendor trials.
+- `Lead` opens a mission and defines the treasury plus mandate.
+- `Scout` short-lists vendors lane-by-lane for the launch stack.
+- `Buyer` pays for trial runs inside the signed caps.
 - `Verifier` accepts or rejects vendor outputs.
 - `Bookkeeper` writes spend receipts and the closing event to the ledger adapter.
 
-The current demo mission is vendor onboarding for infrastructure providers.
+The current demo mission is a launch-day sourcing run across browser automation, telemetry, auth, and knowledge vendors.
 
 ## Repo layout
 
@@ -68,6 +68,7 @@ Available tools:
 - `buy_trial_service`
 - `verify_trial_delivery`
 - `close_company`
+- `source_launch_stack`
 
 ## Verification
 
@@ -99,6 +100,13 @@ Useful helpers:
 - `pnpm casper:keygen` writes an ignored Ed25519 keypair to `contracts/ghostshift-ledger/keys/`.
 - `pnpm casper:deploy-contract` installs the Wasm contract and prints the resulting `GHOSTSHIFT_LEDGER_CONTRACT_HASH=...` line once the deploy lands.
 - `pnpm deploy:worker` publishes the Worker once Wrangler auth and the real D1 database ID are configured.
+
+## Launch stack flow
+
+- The default template is `agent-app-launch`.
+- The desk sources four required lanes: `browser`, `telemetry`, `auth`, and `knowledge`.
+- Agents can trial vendors and spend within the mandate, but final stack approval still pauses for an explicit sign-off.
+- `GET /api/missions/:id/report` returns a structured stack report with per-lane recommendations, blockers, spend totals, and receipts.
 
 ## Contract build
 
