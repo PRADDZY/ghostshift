@@ -100,7 +100,8 @@ GhostShift is a Casper-native launch-day buying desk for agents: it spins up a t
 
 - Repo URL: `REPLACE_WITH_GITHUB_REPO_URL`
 - Live app URL: `REPLACE_WITH_WORKERS_URL`
-- Contract hash: `REPLACE_WITH_CASPER_CONTRACT_HASH`
+- Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
+- Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
 - Explorer URL 1: `REPLACE_WITH_EXPLORER_URL`
 - Explorer URL 2: `REPLACE_WITH_EXPLORER_URL`
 - Submission check timestamp: `REPLACE_WITH_TIMESTAMP`

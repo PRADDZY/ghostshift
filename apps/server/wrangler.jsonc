@@ -28,7 +28,7 @@
         "GHOSTSHIFT_RPC_URL": "https://node.testnet.casper.network/rpc",
         "GHOSTSHIFT_PRIVATE_KEY_ALGORITHM": "ed25519",
         "GHOSTSHIFT_LEDGER_PAYMENT_MOTES": "3000000000",
-        "GHOSTSHIFT_LEDGER_CONTRACT_HASH": "hash-REPLACE_WITH_CASPER_CONTRACT_HASH",
+        "GHOSTSHIFT_LEDGER_CONTRACT_HASH": "hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989",
         "GHOSTSHIFT_PUBLIC_BASE_URL": "https://ghostshift-api-live.REPLACE_WITH_SUBDOMAIN.workers.dev"
       },
       "secrets": {
