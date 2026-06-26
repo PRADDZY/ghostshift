@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "ghostshift:sync-shared": "pnpm --dir ../.. --filter @ghostshift/shared build",
+    "build": "pnpm run ghostshift:sync-shared && pnpm exec tsc -p tsconfig.json",
     "casper:deploy-contract": "tsx scripts/deploy-ledger.ts",
     "casper:keygen": "tsx scripts/create-demo-key.ts",
     "cf:d1:migrate": "wrangler d1 migrations apply ghostshift --remote",
@@ -13,10 +14,10 @@
     "cf:deploy": "wrangler deploy",
     "cf:deploy:live": "wrangler deploy --env live",
     "cf:dev": "wrangler dev",
-    "dev": "tsx watch src/index.ts",
-    "mcp": "tsx src/mcp.ts",
-    "submission:check": "tsx scripts/check-submission.ts",
-    "test": "tsx --test src/**/*.test.ts"
+    "dev": "pnpm run ghostshift:sync-shared && pnpm exec tsx watch src/index.ts",
+    "mcp": "pnpm run ghostshift:sync-shared && pnpm exec tsx src/mcp.ts",
+    "submission:check": "pnpm run ghostshift:sync-shared && pnpm exec tsx scripts/check-submission.ts",
+    "test": "pnpm run ghostshift:sync-shared && pnpm exec tsx --test src/**/*.test.ts"
   },
   "dependencies": {
     "@ghostshift/shared": "workspace:*",

@@ -2,13 +2,21 @@ import { join } from "node:path";
 
 import type { MissionInput } from "@ghostshift/shared";
 
+import { MarketResearchService } from "./domain/evidence.js";
 import { createLedgerAdapter, type GhostShiftEnv } from "./domain/ledger.js";
 import { MissionService } from "./domain/mission-service.js";
-import { D1MissionStore, FileMissionStore, type D1DatabaseLike } from "./domain/store.js";
+import {
+  D1EvidenceSnapshotStore,
+  D1MissionStore,
+  FileEvidenceSnapshotStore,
+  FileMissionStore,
+  type D1DatabaseLike
+} from "./domain/store.js";
 import { VendorMarket } from "./domain/vendors.js";
 
 export interface AppContext {
   readonly ledgerMode: "mock" | "casper";
+  readonly research: MarketResearchService;
   readonly service: MissionService;
   readonly market: VendorMarket;
 }
@@ -19,6 +27,10 @@ function hasD1Binding(value: unknown): value is D1DatabaseLike {
 
 function resolveDefaultMissionPath(): string {
   return join(process.cwd(), "data", "missions.json");
+}
+
+function resolveDefaultEvidencePath(): string {
+  return join(process.cwd(), "data", "evidence-snapshots.json");
 }
 
 function createCorsHeaders() {
@@ -49,12 +61,17 @@ export function createAppContext(env: GhostShiftEnv = process.env as GhostShiftE
   const store = hasD1Binding(env.DB)
     ? new D1MissionStore(env.DB)
     : new FileMissionStore(env.GHOSTSHIFT_MISSIONS_PATH ?? resolveDefaultMissionPath());
+  const evidenceStore = hasD1Binding(env.DB)
+    ? new D1EvidenceSnapshotStore(env.DB)
+    : new FileEvidenceSnapshotStore(env.GHOSTSHIFT_EVIDENCE_PATH ?? resolveDefaultEvidencePath());
   const market = new VendorMarket();
+  const research = new MarketResearchService(evidenceStore);
   const ledger = createLedgerAdapter(env);
-  const service = new MissionService(store, market, ledger);
+  const service = new MissionService(store, market, ledger, research);
 
   return {
     ledgerMode: ledger.mode,
+    research,
     market,
     service
   };
@@ -81,6 +98,18 @@ export async function handleAppRequest(request: Request, context: AppContext): P
       return json(await context.market.list(category));
     }
 
+    if (request.method === "GET" && url.pathname === "/api/evidence/latest") {
+      return json(await context.research.getLatestSnapshot());
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/evidence/refresh") {
+      return json(await context.research.refreshSnapshot(), 201);
+    }
+
+    if (request.method === "GET" && segments[0] === "api" && segments[1] === "evidence" && segments[2]) {
+      return json(await context.research.getSnapshot(segments[2]));
+    }
+
     if (request.method === "POST" && url.pathname === "/api/missions") {
       const input = await parseJson<MissionInput>(request);
       return json(await context.service.createMission(input), 201);
@@ -98,6 +127,16 @@ export async function handleAppRequest(request: Request, context: AppContext): P
 
     if (request.method === "GET" && segments[0] === "api" && segments[1] === "missions" && segments[2]) {
       return json(await context.service.getMissionView(segments[2]));
+    }
+
+    if (
+      request.method === "GET" &&
+      segments[0] === "api" &&
+      segments[1] === "missions" &&
+      segments[2] &&
+      segments[3] === "negotiation"
+    ) {
+      return json(await context.service.getMissionNegotiationView(segments[2]));
     }
 
     if (

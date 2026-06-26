@@ -16,6 +16,49 @@ function asStructuredContent<T>(value: T): Record<string, unknown> {
 }
 
 server.registerTool(
+  "refresh_market_evidence",
+  {
+    description: "Refresh the curated public-market evidence snapshot from official vendor pages.",
+    inputSchema: {}
+  },
+  async () => {
+    const snapshot = await context.research.refreshSnapshot();
+    return {
+      content: [
+        {
+          type: "text",
+          text: `Refreshed evidence snapshot ${snapshot.id} with ${snapshot.vendors.length} real vendors.`
+        }
+      ],
+      structuredContent: { snapshot: asStructuredContent(snapshot) }
+    };
+  }
+);
+
+server.registerTool(
+  "inspect_vendor_evidence",
+  {
+    description: "Inspect the latest or pinned evidence snapshot for a real vendor.",
+    inputSchema: {
+      vendorId: z.string().min(3),
+      snapshotId: z.string().uuid().optional()
+    }
+  },
+  async ({ vendorId, snapshotId }) => {
+    const evidence = await context.research.getVendorEvidence(vendorId, snapshotId);
+    return {
+      content: [
+        {
+          type: "text",
+          text: `${evidence.vendorName} has confidence ${evidence.confidenceScore} with ${evidence.citations.length} citation(s).`
+        }
+      ],
+      structuredContent: { evidence: asStructuredContent(evidence) }
+    };
+  }
+);
+
+server.registerTool(
   "launch_company",
   {
     description: "Create a new GhostShift pop-up company with a treasury and mission brief.",
@@ -24,7 +67,8 @@ server.registerTool(
       brief: z.string().min(12),
       preferredCategory: z.string().default("infra"),
       totalBudgetMotes: z.number().int().positive(),
-      categoryCapMotes: z.number().int().positive()
+      categoryCapMotes: z.number().int().positive(),
+      evidenceSnapshotId: z.string().uuid().optional()
     }
   },
   async ({ categoryCapMotes, ...args }) => {
@@ -43,6 +87,32 @@ server.registerTool(
         }
       ],
       structuredContent: { mission: asStructuredContent(mission) }
+    };
+  }
+);
+
+server.registerTool(
+  "run_negotiation_round",
+  {
+    description: "Preview the negotiation arena output for a vendor inside a mission.",
+    inputSchema: {
+      missionId: z.string().uuid(),
+      vendorId: z.string().min(3)
+    }
+  },
+  async ({ missionId, vendorId }) => {
+    const result = await context.service.previewNegotiation(missionId, vendorId);
+    return {
+      content: [
+        {
+          type: "text",
+          text: `${vendorId} ended the negotiation with ${result.finalOffer.trialPriceMotes} motes and score ${result.finalOffer.score}.`
+        }
+      ],
+      structuredContent: {
+        rounds: result.rounds.map((round) => asStructuredContent(round)),
+        finalOffer: asStructuredContent(result.finalOffer)
+      }
     };
   }
 );
@@ -130,11 +200,15 @@ server.registerTool(
   },
   async ({ missionId, vendorId }) => {
     const mission = await context.service.approveVendor(missionId, vendorId);
+    const approvedCount = Object.keys(mission.approvedVendorIdsByLane).length;
     return {
       content: [
         {
           type: "text",
-          text: `${mission.companyName} closed after approving ${mission.approvedVendorId}.`
+          text:
+            approvedCount > 1
+              ? `${mission.companyName} closed after approving ${approvedCount} launch lanes.`
+              : `${mission.companyName} closed after approving ${mission.approvedVendorId}.`
         }
       ],
       structuredContent: { mission: asStructuredContent(mission) }
@@ -150,18 +224,20 @@ server.registerTool(
       companyName: z.string().min(3),
       brief: z.string().min(12),
       totalBudgetMotes: z.number().int().positive(),
+      evidenceSnapshotId: z.string().uuid().optional(),
       requiredLanes: z.array(z.string().min(2)).default([...launchStackLanes]),
       maxTrialSpendMotes: z.number().int().positive().default(defaultLaunchStackMandate.maxTrialSpendMotes),
       laneCaps: z.record(z.string(), z.number().int().positive()).optional()
     }
   },
-  async ({ companyName, brief, totalBudgetMotes, requiredLanes, maxTrialSpendMotes, laneCaps }) => {
+  async ({ companyName, brief, totalBudgetMotes, evidenceSnapshotId, requiredLanes, maxTrialSpendMotes, laneCaps }) => {
     const mission = await context.service.createMission({
       companyName,
       brief,
       preferredCategory: "infra",
       totalBudgetMotes,
       categoryCaps: { infra: totalBudgetMotes },
+      evidenceSnapshotId,
       stackTemplateId: launchStackTemplateId,
       requiredLanes,
       mandate: {

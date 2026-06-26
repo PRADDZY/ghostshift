@@ -5,9 +5,11 @@ import { join } from "node:path";
 import test from "node:test";
 
 import type { MissionInput, Vendor } from "@ghostshift/shared";
+import type { EvidenceSnapshot, VendorEvidence } from "@ghostshift/shared";
+import { MarketResearchService } from "./evidence.js";
 import { createLedgerAdapter } from "./ledger.js";
 import { MissionService } from "./mission-service.js";
-import { FileMissionStore } from "./store.js";
+import { FileEvidenceSnapshotStore, FileMissionStore } from "./store.js";
 import { VendorMarket } from "./vendors.js";
 
 function makeVendor(overrides: Partial<Vendor> & Pick<Vendor, "id" | "name" | "category" | "lane">): Vendor {
@@ -30,16 +32,57 @@ function makeVendor(overrides: Partial<Vendor> & Pick<Vendor, "id" | "name" | "c
 async function makeService(vendors: Vendor[]) {
   const tempDir = await mkdtemp(join(tmpdir(), "ghostshift-"));
   const missionFile = join(tempDir, "missions.json");
+  const evidenceFile = join(tempDir, "evidence.json");
 
   await writeFile(missionFile, "[]\n");
+  await writeFile(evidenceFile, "[]\n");
+  const evidenceStore = new FileEvidenceSnapshotStore(evidenceFile);
+  const research = new MarketResearchService(evidenceStore);
+  await evidenceStore.save(makeSnapshot(vendors));
 
   return {
     service: new MissionService(
       new FileMissionStore(missionFile),
       new VendorMarket(vendors),
-      createLedgerAdapter({ GHOSTSHIFT_LEDGER_MODE: "mock" })
+      createLedgerAdapter({ GHOSTSHIFT_LEDGER_MODE: "mock" }),
+      research
     ),
     missionFile
+  };
+}
+
+function makeSnapshot(vendors: Vendor[]): EvidenceSnapshot {
+  const createdAt = new Date().toISOString();
+  const evidence = vendors.map<VendorEvidence>((vendor) => ({
+    vendorId: vendor.id,
+    vendorName: vendor.name,
+    lane: vendor.lane,
+    pricingSummary: `${vendor.name} pricing snapshot`,
+    setupSummary: `${vendor.name} setup snapshot`,
+    securitySummary: `${vendor.name} security snapshot`,
+    featureClaims: [vendor.tagline],
+    confidenceScore: vendor.securityGrade.startsWith("A") ? 92 : 78,
+    trialPriceMotes: vendor.trialPriceMotes,
+    setupMinutes: vendor.setupMinutes,
+    securityGrade: vendor.securityGrade,
+    supportsMcp: vendor.supportsMcp,
+    supportsX402: vendor.supportsX402,
+    citations: [
+      {
+        label: "Test source",
+        url: vendor.sampleArtifactUrl,
+        excerpt: vendor.tagline,
+        fetchedAt: createdAt
+      }
+    ],
+    fetchedAt: createdAt
+  }));
+
+  return {
+    id: "test-snapshot",
+    mode: "seeded",
+    createdAt,
+    vendors: evidence
   };
 }
 
@@ -254,4 +297,41 @@ test("mission reports include per-lane recommendations and spend totals", async 
   assert.equal(report.lanes.length, 2);
   assert.equal(report.lanes[0]?.recommendedVendorId !== undefined, true);
   assert.equal(report.spendSummary.spentMotes > 0, true);
+});
+
+test("missions pin the latest evidence snapshot and record negotiation rounds", async () => {
+  const { service } = await makeService([
+    makeVendor({
+      id: "browserbase",
+      name: "Browserbase",
+      category: "infra",
+      lane: "browser",
+      trialPriceMotes: 120,
+      supportsMcp: true,
+      securityGrade: "A",
+      qualityScore: 93
+    })
+  ]);
+
+  const mission = await createMission(service, {
+    companyName: "Evidence Test",
+    brief: "Pin the latest evidence snapshot before the mission starts negotiating.",
+    preferredCategory: "infra",
+    totalBudgetMotes: 250,
+    categoryCaps: { infra: 250 },
+    requiredLanes: ["browser"],
+    mandate: {
+      maxTrialSpendMotes: 150,
+      laneCaps: { browser: 180 },
+      requireFinalApproval: true
+    }
+  });
+
+  const updated = await service.runMission(mission.id);
+  const negotiation = await service.getMissionNegotiationView(mission.id);
+
+  assert.equal(mission.evidenceSnapshotId, "test-snapshot");
+  assert.equal(updated.status, "review");
+  assert.equal(negotiation.rounds.length, 3);
+  assert.equal(updated.negotiatedOffersByLane.browser?.accepted, true);
 });

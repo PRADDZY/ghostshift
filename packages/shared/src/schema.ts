@@ -4,6 +4,10 @@ export type MissionStatus = "draft" | "running" | "review" | "completed" | "fail
 
 export type LedgerMode = "mock" | "casper";
 
+export type EvidenceSnapshotMode = "seeded" | "live";
+
+export type NegotiationActor = "scout" | "buyer" | "vendor";
+
 export type SpendStatus = "quoted" | "paid" | "delivered" | "approved" | "rejected";
 
 export interface ProcurementMandate {
@@ -36,6 +40,7 @@ export interface MissionInput {
   preferredCategory: string;
   totalBudgetMotes: number;
   categoryCaps: Record<string, number>;
+  evidenceSnapshotId?: string;
   stackTemplateId?: string;
   requiredLanes?: string[];
   mandate?: ProcurementMandate;
@@ -57,6 +62,66 @@ export interface Vendor {
   supportsX402: boolean;
   deliveryMode: "fresh" | "stale" | "malformed";
   sampleArtifactUrl: string;
+}
+
+export interface EvidenceCitation {
+  label: string;
+  url: string;
+  excerpt: string;
+  fetchedAt: string;
+}
+
+export interface VendorEvidence {
+  vendorId: string;
+  vendorName: string;
+  lane: string;
+  pricingSummary: string;
+  setupSummary: string;
+  securitySummary: string;
+  featureClaims: string[];
+  confidenceScore: number;
+  trialPriceMotes: number;
+  setupMinutes: number;
+  securityGrade: string;
+  supportsMcp: boolean;
+  supportsX402: boolean;
+  citations: EvidenceCitation[];
+  fetchedAt: string;
+}
+
+export interface EvidenceSnapshot {
+  id: string;
+  mode: EvidenceSnapshotMode;
+  createdAt: string;
+  vendors: VendorEvidence[];
+}
+
+export interface NegotiatedOffer {
+  vendorId: string;
+  vendorName: string;
+  lane: string;
+  trialPriceMotes: number;
+  setupMinutes: number;
+  securityGrade: string;
+  supportsMcp: boolean;
+  supportsX402: boolean;
+  confidenceScore: number;
+  score: number;
+  accepted: boolean;
+  reason: string;
+  citations: EvidenceCitation[];
+}
+
+export interface NegotiationRound {
+  id: string;
+  lane: string;
+  vendorId: string;
+  vendorName: string;
+  actor: NegotiationActor;
+  round: number;
+  message: string;
+  offer: NegotiatedOffer;
+  createdAt: string;
 }
 
 export interface PaymentRequirement {
@@ -127,6 +192,7 @@ export interface Mission {
   preferredCategory: string;
   stackTemplateId?: string;
   requiredLanes: string[];
+  evidenceSnapshotId?: string;
   status: MissionStatus;
   totalBudgetMotes: number;
   treasuryRemainingMotes: number;
@@ -137,8 +203,10 @@ export interface Mission {
   recommendedVendorId?: string;
   recommendedVendorIdsByLane: Record<string, string>;
   approvedVendorIdsByLane: Record<string, string>;
+  negotiatedOffersByLane: Record<string, NegotiatedOffer>;
   blockers: string[];
   vendorIdsSeen: string[];
+  negotiationRounds: NegotiationRound[];
   events: MissionEvent[];
   spends: SpendEvent[];
   verdicts: VerificationVerdict[];
@@ -152,6 +220,13 @@ export interface MissionView {
   vendors: Vendor[];
 }
 
+export interface MissionNegotiationView {
+  missionId: string;
+  evidenceSnapshotId?: string;
+  rounds: NegotiationRound[];
+  negotiatedOffersByLane: Record<string, NegotiatedOffer>;
+}
+
 export interface MissionVendorReport {
   vendorId: string;
   name: string;
@@ -160,6 +235,8 @@ export interface MissionVendorReport {
   securityGrade: string;
   supportsMcp: boolean;
   supportsX402: boolean;
+  evidence?: VendorEvidence;
+  negotiatedOffer?: NegotiatedOffer;
   verdict?: VerificationVerdict;
 }
 

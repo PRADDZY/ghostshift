@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "vite",
+    "ghostshift:sync-shared": "pnpm --dir ../.. --filter @ghostshift/shared build",
+    "build": "pnpm run ghostshift:sync-shared && pnpm exec vite build",
+    "dev": "pnpm run ghostshift:sync-shared && pnpm exec vite",
     "test": "node -e \"process.exit(0)\""
   },
   "dependencies": {

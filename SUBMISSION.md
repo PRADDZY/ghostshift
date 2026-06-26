@@ -81,20 +81,22 @@ That check only passes when:
 
 ### One-liner
 
-GhostShift is a Casper-native launch-day buying desk for agents: it spins up a temporary company with a capped treasury, lets specialist agents source a browser, telemetry, auth, and knowledge stack under a signed mandate, and dissolves the desk with every spend anchored on Casper.
+GhostShift is a Casper-native evidence-backed buying desk for agents: it pins a live market snapshot, negotiates the browser, telemetry, auth, and knowledge stack lane by lane under a signed mandate, and dissolves the desk with every spend anchored on Casper.
 
 ### What is different
 
-- Most agent demos stop at recommendations; GhostShift turns agent procurement into a signed treasury workflow with approval, spend caps, and receipts.
+- Most agent demos stop at recommendations; GhostShift turns agent procurement into a signed treasury workflow with approval, spend caps, negotiation rounds, and receipts.
+- The desk does not rely on static vendor blurbs: it can refresh a public evidence pack from official vendor pages, then pin that snapshot into the mission.
 - The product frames vendor selection as a temporary operating company, which is more legible to judges than another generic agent dashboard.
 - Casper is not decorative here: the close-out of the desk and the spend trail are the trust layer, so the prototype can prove that agents stayed inside a mandate.
 
 ### Demo proof points
 
-- Open-source repo with Worker API, web UI, MCP server, and Casper contract scaffold
+- Open-source repo with Worker API, negotiation war-room UI, MCP server, and Casper contract scaffold
+- Live evidence pack refresh plus pinned mission snapshots
 - Public Cloudflare Worker endpoint running in `casper` ledger mode
 - Live Casper deploy hashes returned from the approval flow
-- Structured mission report covering picks, blockers, spend totals, and receipts
+- Structured mission report covering picks, blockers, spend totals, receipts, and negotiation output
 
 ## Evidence To Paste Before Submission
 
@@ -102,6 +104,6 @@ GhostShift is a Casper-native launch-day buying desk for agents: it spins up a t
 - Live app URL: `https://ghostshift-api-live.dpratik3005.workers.dev`
 - Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
 - Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
-- Explorer URL 1: `https://testnet.cspr.live/deploy/be219a1a620e6fca3642981c4991dfbf71bd6e63cea170fc192b55a6857ef18d`
-- Explorer URL 2: `https://testnet.cspr.live/deploy/7b7487ca8f9f034fb2416372fc781763cb00b2efcc465ca32bd52a1f8b057af0`
-- Submission check timestamp: `2026-06-26T18:23:42.8133053+05:30`
+- Explorer URL 1: `https://testnet.cspr.live/deploy/0f27a6d027841aaae28cdda7663efbd0056bbcec53f651d4990ceeae01d2152a`
+- Explorer URL 2: `https://testnet.cspr.live/deploy/f4d1a4b588173dcac53c1d9a3c0145d546ed6fe460b684322a85019a4f892ee4`
+- Submission check timestamp: `2026-06-26T19:40:54.3729506+05:30`

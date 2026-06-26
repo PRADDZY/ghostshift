@@ -233,7 +233,7 @@ async function main(): Promise<void> {
         },
         requireFinalApproval: true,
         allowedVendorsByLane: {
-          browser: ["orbit-browser"]
+          browser: ["browserbase"]
         }
       }
     })

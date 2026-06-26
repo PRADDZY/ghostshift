@@ -2,16 +2,20 @@ import { randomUUID } from "node:crypto";
 
 import type {
   DeliveryPayload,
+  EvidenceSnapshot,
   Mission,
   MissionEvent,
   MissionInput,
+  MissionNegotiationView,
   MissionReport,
   MissionVendorReport,
   MissionView,
+  NegotiatedOffer,
   ProcurementLaneReport,
   ProcurementMandate,
   SpendEvent,
   Vendor,
+  VendorEvidence,
   VerificationVerdict
 } from "@ghostshift/shared";
 import {
@@ -22,7 +26,9 @@ import {
 } from "@ghostshift/shared";
 
 import type { LedgerAdapter } from "./ledger.js";
+import { MarketResearchService } from "./evidence.js";
 import { createProofHash } from "./ledger.js";
+import { runNegotiationArena } from "./negotiation.js";
 import type { MissionStore } from "./store.js";
 import type { VendorMarket } from "./vendors.js";
 
@@ -30,13 +36,17 @@ export class MissionService {
   constructor(
     private readonly store: MissionStore,
     private readonly market: VendorMarket,
-    private readonly ledger: LedgerAdapter
+    private readonly ledger: LedgerAdapter,
+    private readonly research: MarketResearchService
   ) {}
 
   async createMission(input: MissionInput): Promise<Mission> {
     const now = new Date().toISOString();
     const requiredLanes = this.resolveRequiredLanes(input);
     const mandate = this.resolveMandate(input, requiredLanes);
+    const snapshot = input.evidenceSnapshotId
+      ? await this.research.getSnapshot(input.evidenceSnapshotId)
+      : await this.research.getLatestSnapshot();
 
     const mission: Mission = {
       id: randomUUID(),
@@ -45,6 +55,7 @@ export class MissionService {
       preferredCategory: input.preferredCategory,
       stackTemplateId: input.stackTemplateId ?? (requiredLanes.length > 0 ? launchStackTemplateId : undefined),
       requiredLanes,
+      evidenceSnapshotId: snapshot.id,
       status: "draft",
       totalBudgetMotes: input.totalBudgetMotes,
       treasuryRemainingMotes: input.totalBudgetMotes,
@@ -53,12 +64,15 @@ export class MissionService {
       ledgerMode: this.ledger.mode,
       recommendedVendorIdsByLane: {},
       approvedVendorIdsByLane: {},
+      negotiatedOffersByLane: {},
       blockers: [],
       vendorIdsSeen: [],
+      negotiationRounds: [],
       events: [
         this.makeEvent("lead", "company-opened", `${input.companyName} is live with a capped treasury.`, {
           budget: input.totalBudgetMotes,
-          lanes: requiredLanes.length > 0 ? requiredLanes.join(",") : input.preferredCategory
+          lanes: requiredLanes.length > 0 ? requiredLanes.join(",") : input.preferredCategory,
+          snapshotId: snapshot.id
         })
       ],
       spends: [],
@@ -80,7 +94,9 @@ export class MissionService {
   async getMissionReport(missionId: string): Promise<MissionReport> {
     const mission = await this.requireMission(missionId);
     const vendors = await this.listMissionVendors(mission);
-    const lanes = this.getLaneKeys(mission).map((lane) => this.makeLaneReport(mission, lane, vendors));
+    const snapshot = await this.requireEvidenceSnapshot(mission);
+    const evidenceByVendorId = new Map(snapshot.vendors.map((entry) => [entry.vendorId, entry] as const));
+    const lanes = this.getLaneKeys(mission).map((lane) => this.makeLaneReport(mission, lane, vendors, evidenceByVendorId));
 
     return {
       mission,
@@ -100,7 +116,31 @@ export class MissionService {
     return this.listMissionVendors(mission);
   }
 
-  async buyTrial(missionId: string, vendorId: string): Promise<{
+  async getMissionNegotiationView(missionId: string): Promise<MissionNegotiationView> {
+    const mission = await this.requireMission(missionId);
+    return {
+      missionId: mission.id,
+      evidenceSnapshotId: mission.evidenceSnapshotId,
+      rounds: mission.negotiationRounds,
+      negotiatedOffersByLane: mission.negotiatedOffersByLane
+    };
+  }
+
+  async previewNegotiation(missionId: string, vendorId: string): Promise<{
+    rounds: Mission["negotiationRounds"];
+    finalOffer: NegotiatedOffer;
+  }> {
+    const mission = await this.requireMission(missionId);
+    const vendor = await this.market.get(vendorId);
+    const evidence = await this.requireVendorEvidence(mission, vendor.id);
+    return runNegotiationArena(vendor, evidence, {
+      lane: vendor.lane,
+      laneCap: this.resolveLaneCap(mission, vendor),
+      mandate: mission.mandate
+    });
+  }
+
+  async buyTrial(missionId: string, vendorId: string, negotiatedOffer?: NegotiatedOffer): Promise<{
     mission: Mission;
     delivery: DeliveryPayload;
     verdict: VerificationVerdict;
@@ -115,7 +155,10 @@ export class MissionService {
       throw new Error(`Vendor ${vendor.id} is not allowed for this mission.`);
     }
 
-    const delivery = await this.buyTrialService(mission, vendor);
+    const delivery = await this.buyTrialService(
+      mission,
+      negotiatedOffer ? this.applyNegotiatedOffer(vendor, negotiatedOffer) : vendor
+    );
     const verdict = this.verifyDelivery(delivery);
 
     mission.verdicts = mission.verdicts.filter((candidate) => candidate.vendorId !== vendor.id);
@@ -149,12 +192,17 @@ export class MissionService {
       throw new Error("Mission already closed.");
     }
 
+    const snapshot = await this.requireEvidenceSnapshot(mission);
+    const evidenceByVendorId = new Map(snapshot.vendors.map((entry) => [entry.vendorId, entry] as const));
     mission.status = "running";
     mission.updatedAt = new Date().toISOString();
     mission.recommendedVendorIdsByLane = {};
+    mission.negotiatedOffersByLane = {};
+    mission.negotiationRounds = [];
     mission.blockers = [];
 
     const vendors = await this.listMissionVendors(mission);
+    const negotiatedByVendorId = new Map<string, NegotiatedOffer>();
 
     for (const lane of this.getLaneKeys(mission)) {
       const laneVendors = this.listLaneCandidates(mission, lane, vendors);
@@ -181,8 +229,54 @@ export class MissionService {
           })
         );
 
+        const evidence = evidenceByVendorId.get(vendor.id);
+        if (!evidence) {
+          mission.events.push(
+            this.makeEvent("scout", "evidence-missing", `No active evidence snapshot exists for ${vendor.name}.`, {
+              lane,
+              vendorId: vendor.id
+            })
+          );
+          continue;
+        }
+
+        const negotiation = runNegotiationArena(vendor, evidence, {
+          lane,
+          laneCap: this.resolveLaneCap(mission, vendor),
+          mandate: mission.mandate
+        });
+        negotiatedByVendorId.set(vendor.id, negotiation.finalOffer);
+        mission.negotiationRounds.push(...negotiation.rounds);
+        mission.updatedAt = new Date().toISOString();
+        mission.events.push(
+          this.makeEvent("buyer", "counter-issued", negotiation.rounds[1]!.message, {
+            lane,
+            vendorId: vendor.id,
+            offer: negotiation.rounds[1]!.offer.trialPriceMotes
+          })
+        );
+        mission.events.push(
+          this.makeEvent(
+            "verifier",
+            negotiation.finalOffer.accepted ? "concession-accepted" : "concession-rejected",
+            negotiation.finalOffer.reason,
+            {
+              lane,
+              vendorId: vendor.id,
+              offer: negotiation.finalOffer.trialPriceMotes,
+              score: negotiation.finalOffer.score
+            }
+          )
+        );
+
+        if (!negotiation.finalOffer.accepted) {
+          continue;
+        }
+
+        await this.store.save(mission);
+
         try {
-          await this.buyTrial(mission.id, vendor.id);
+          await this.buyTrial(mission.id, vendor.id, negotiation.finalOffer);
           this.copyMissionState(mission, await this.requireMission(mission.id));
         } catch (error) {
           mission.events.push(
@@ -195,8 +289,17 @@ export class MissionService {
       }
 
       const accepted = mission.verdicts
-        .filter((verdict) => verdict.accepted && laneVendors.some((vendor) => vendor.id === verdict.vendorId))
-        .sort((left, right) => right.score - left.score);
+        .filter(
+          (verdict) =>
+            verdict.accepted &&
+            laneVendors.some((vendor) => vendor.id === verdict.vendorId) &&
+            negotiatedByVendorId.get(verdict.vendorId)?.accepted
+        )
+        .sort(
+          (left, right) =>
+            (negotiatedByVendorId.get(right.vendorId)?.score ?? right.score) -
+            (negotiatedByVendorId.get(left.vendorId)?.score ?? left.score)
+        );
 
       if (accepted.length === 0) {
         mission.blockers.push(`No ${lane} vendor met the company standards.`);
@@ -204,10 +307,12 @@ export class MissionService {
       }
 
       mission.recommendedVendorIdsByLane[lane] = accepted[0]!.vendorId;
+      mission.negotiatedOffersByLane[lane] = negotiatedByVendorId.get(accepted[0]!.vendorId)!;
       mission.events.push(
         this.makeEvent("lead", "lane-recommended", `Lead recommends ${accepted[0]!.vendorId} for ${lane}.`, {
           lane,
-          vendorId: accepted[0]!.vendorId
+          vendorId: accepted[0]!.vendorId,
+          score: negotiatedByVendorId.get(accepted[0]!.vendorId)?.score ?? accepted[0]!.score
         })
       );
     }
@@ -398,6 +503,18 @@ export class MissionService {
     return mission;
   }
 
+  private async requireEvidenceSnapshot(mission: Mission): Promise<EvidenceSnapshot> {
+    if (mission.evidenceSnapshotId) {
+      return this.research.getSnapshot(mission.evidenceSnapshotId);
+    }
+
+    return this.research.getLatestSnapshot();
+  }
+
+  private async requireVendorEvidence(mission: Mission, vendorId: string): Promise<VendorEvidence> {
+    return this.research.getVendorEvidence(vendorId, mission.evidenceSnapshotId);
+  }
+
   private resolveRequiredLanes(input: MissionInput): string[] {
     if (input.requiredLanes?.length) {
       return [...input.requiredLanes];
@@ -443,6 +560,11 @@ export class MissionService {
 
   private getLaneForVendor(mission: Mission, vendor: Vendor): string {
     return mission.requiredLanes.length > 0 ? vendor.lane : vendor.category;
+  }
+
+  private resolveLaneCap(mission: Mission, vendor: Vendor): number {
+    const lane = this.getLaneForVendor(mission, vendor);
+    return mission.mandate.laneCaps[lane] ?? mission.categoryCaps[vendor.category] ?? mission.totalBudgetMotes;
   }
 
   private async listMissionVendors(mission: Mission): Promise<Vendor[]> {
@@ -494,9 +616,14 @@ export class MissionService {
     return Object.fromEntries(entries) as Record<string, string>;
   }
 
-  private makeLaneReport(mission: Mission, lane: string, vendors: Vendor[]): ProcurementLaneReport {
+  private makeLaneReport(
+    mission: Mission,
+    lane: string,
+    vendors: Vendor[],
+    evidenceByVendorId: ReadonlyMap<string, VendorEvidence>
+  ): ProcurementLaneReport {
     const candidates = this.listLaneCandidates(mission, lane, vendors).map((vendor) =>
-      this.makeVendorReport(mission, vendor)
+      this.makeVendorReport(mission, vendor, evidenceByVendorId.get(vendor.id))
     );
 
     return {
@@ -508,7 +635,7 @@ export class MissionService {
     };
   }
 
-  private makeVendorReport(mission: Mission, vendor: Vendor): MissionVendorReport {
+  private makeVendorReport(mission: Mission, vendor: Vendor, evidence?: VendorEvidence): MissionVendorReport {
     return {
       vendorId: vendor.id,
       name: vendor.name,
@@ -517,12 +644,29 @@ export class MissionService {
       securityGrade: vendor.securityGrade,
       supportsMcp: vendor.supportsMcp,
       supportsX402: vendor.supportsX402,
+      evidence,
+      negotiatedOffer: this.getLatestNegotiatedOffer(mission, vendor.id),
       verdict: this.getLatestVerdict(mission, vendor.id)
     };
   }
 
   private getLatestVerdict(mission: Mission, vendorId: string): VerificationVerdict | undefined {
     return [...mission.verdicts].reverse().find((candidate) => candidate.vendorId === vendorId);
+  }
+
+  private getLatestNegotiatedOffer(mission: Mission, vendorId: string): NegotiatedOffer | undefined {
+    return [...mission.negotiationRounds].reverse().find((candidate) => candidate.vendorId === vendorId)?.offer;
+  }
+
+  private applyNegotiatedOffer(vendor: Vendor, offer: NegotiatedOffer): Vendor {
+    return {
+      ...vendor,
+      trialPriceMotes: offer.trialPriceMotes,
+      setupMinutes: offer.setupMinutes,
+      securityGrade: offer.securityGrade,
+      supportsMcp: offer.supportsMcp,
+      supportsX402: offer.supportsX402
+    };
   }
 
   private copyMissionState(target: Mission, source: Mission): void {
@@ -532,6 +676,8 @@ export class MissionService {
     target.verdicts = source.verdicts;
     target.receipts = source.receipts;
     target.events = source.events;
+    target.negotiationRounds = source.negotiationRounds;
+    target.negotiatedOffersByLane = source.negotiatedOffersByLane;
     target.blockers = source.blockers.length > 0 ? source.blockers : target.blockers;
     target.recommendedVendorIdsByLane = {
       ...target.recommendedVendorIdsByLane,

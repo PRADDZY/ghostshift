@@ -1,21 +1,21 @@
 # GhostShift
 
-GhostShift is a Casper-native launch-day infra buying desk for agents. You open a temporary company with a capped treasury, let specialist agents source the browser, telemetry, auth, and knowledge stack under a signed mandate, and dissolve the desk with a permanent ledger trail.
+GhostShift is a Casper-native evidence-and-negotiation buying desk for agents. You open a temporary company with a capped treasury, pin a market evidence snapshot, let specialist agents source the browser, telemetry, auth, and knowledge stack under a signed mandate, and dissolve the desk with a permanent ledger trail.
 
 ## What it does
 
-- `Lead` opens a mission and defines the treasury plus mandate.
-- `Scout` short-lists vendors lane-by-lane for the launch stack.
-- `Buyer` pays for trial runs inside the signed caps.
+- `Lead` opens a mission, defines the treasury plus mandate, and pins the evidence snapshot.
+- `Scout` refreshes public vendor evidence and short-lists vendors lane-by-lane for the launch stack.
+- `Buyer` negotiates down to mandate-safe trial terms, then pays for trial runs inside the signed caps.
 - `Verifier` accepts or rejects vendor outputs.
 - `Bookkeeper` writes spend receipts and the closing event to the ledger adapter.
 
-The current demo mission is a launch-day sourcing run across browser automation, telemetry, auth, and knowledge vendors.
+The current demo mission is a launch-day sourcing run across browser automation, telemetry, auth, and knowledge vendors with a visible negotiation arena and source citations.
 
 ## Repo layout
 
 - `apps/server` - HTTP API, mission engine, vendor market, ledger adapter, MCP server
-- `apps/web` - single-screen demo UI for judges
+- `apps/web` - evidence-and-negotiation war room for judges
 - `packages/shared` - shared mission, vendor, spend, and receipt types
 - `contracts/ghostshift-ledger` - minimal Casper receipt contract scaffold
 
@@ -63,7 +63,10 @@ pnpm dev:mcp
 
 Available tools:
 
+- `refresh_market_evidence`
+- `inspect_vendor_evidence`
 - `launch_company`
+- `run_negotiation_round`
 - `list_candidate_vendors`
 - `buy_trial_service`
 - `verify_trial_delivery`
@@ -108,8 +111,11 @@ Useful helpers:
 
 - The default template is `agent-app-launch`.
 - The desk sources four required lanes: `browser`, `telemetry`, `auth`, and `knowledge`.
+- Every mission pins an `evidenceSnapshotId` so the desk can prove which market facts it used.
+- The sourcing run records `negotiationRounds` and per-lane negotiated offers before trial payment.
 - Agents can trial vendors and spend within the mandate, but final stack approval still pauses for an explicit sign-off.
 - `GET /api/missions/:id/report` returns a structured stack report with per-lane recommendations, blockers, spend totals, and receipts.
+- `GET /api/evidence/latest`, `POST /api/evidence/refresh`, and `GET /api/missions/:id/negotiation` expose the evidence pack and negotiation arena directly.
 
 ## Contract build
 
@@ -146,6 +152,6 @@ The Windows helper script auto-adds a WinLibs `mingw64/bin` install to `PATH` wh
 ## Honest status
 
 - Verified here:
-  Node demo, web build, MCP entrypoint, Worker boot, local D1 migration, Worker mission lifecycle, Worker deploy dry-run, and Casper Wasm compilation.
+  Node demo, web build, MCP entrypoint, Worker boot, local D1 migration, remote D1 migration, Worker mission lifecycle, live Worker deploy, Casper Wasm compilation, and `pnpm submission:check` with live explorer URLs.
 - Still manual:
   Wrangler auth, creating the live D1 database, funding a Casper testnet key, running the real contract install, uploading the live Worker secret, deploying the public Worker, and recording the demo/submission package.

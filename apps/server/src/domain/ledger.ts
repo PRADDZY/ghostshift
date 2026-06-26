@@ -36,6 +36,7 @@ interface LedgerEntryInput {
 export interface GhostShiftEnv {
   DB?: unknown;
   GHOSTSHIFT_MISSIONS_PATH?: string;
+  GHOSTSHIFT_EVIDENCE_PATH?: string;
   GHOSTSHIFT_LEDGER_MODE?: string;
   GHOSTSHIFT_RPC_URL?: string;
   GHOSTSHIFT_CHAIN_NAME?: string;
