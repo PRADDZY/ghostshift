@@ -29,7 +29,7 @@
         "GHOSTSHIFT_PRIVATE_KEY_ALGORITHM": "ed25519",
         "GHOSTSHIFT_LEDGER_PAYMENT_MOTES": "3000000000",
         "GHOSTSHIFT_LEDGER_CONTRACT_HASH": "hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989",
-        "GHOSTSHIFT_PUBLIC_BASE_URL": "https://ghostshift-api-live.REPLACE_WITH_SUBDOMAIN.workers.dev"
+        "GHOSTSHIFT_PUBLIC_BASE_URL": "https://ghostshift-api-live.dpratik3005.workers.dev"
       },
       "secrets": {
         "required": ["GHOSTSHIFT_PRIVATE_KEY_PEM"]
@@ -38,8 +38,8 @@
         {
           "binding": "DB",
           "database_name": "ghostshift-live",
-          "database_id": "00000000-0000-0000-0000-000000000000",
-          "preview_database_id": "00000000-0000-0000-0000-000000000000",
+          "database_id": "db507307-f2d2-49d4-9cec-4b43e506bbb6",
+          "preview_database_id": "db507307-f2d2-49d4-9cec-4b43e506bbb6",
           "migrations_dir": "migrations"
         }
       ]

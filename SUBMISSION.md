@@ -98,10 +98,10 @@ GhostShift is a Casper-native launch-day buying desk for agents: it spins up a t
 
 ## Evidence To Paste Before Submission
 
-- Repo URL: `REPLACE_WITH_GITHUB_REPO_URL`
-- Live app URL: `REPLACE_WITH_WORKERS_URL`
+- Repo URL: `https://github.com/PRADDZY/ghostshift`
+- Live app URL: `https://ghostshift-api-live.dpratik3005.workers.dev`
 - Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
 - Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
-- Explorer URL 1: `REPLACE_WITH_EXPLORER_URL`
-- Explorer URL 2: `REPLACE_WITH_EXPLORER_URL`
-- Submission check timestamp: `REPLACE_WITH_TIMESTAMP`
+- Explorer URL 1: `https://testnet.cspr.live/deploy/be219a1a620e6fca3642981c4991dfbf71bd6e63cea170fc192b55a6857ef18d`
+- Explorer URL 2: `https://testnet.cspr.live/deploy/7b7487ca8f9f034fb2416372fc781763cb00b2efcc465ca32bd52a1f8b057af0`
+- Submission check timestamp: `2026-06-26T18:23:42.8133053+05:30`

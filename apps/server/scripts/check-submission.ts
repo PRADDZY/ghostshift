@@ -107,7 +107,8 @@ function runCommand(command: string, args: string[], cwd: string): string {
   const result = spawnSync(command, args, {
     cwd,
     encoding: "utf8",
-    shell: false
+    // ponytail: .cmd shims need a shell on Windows, otherwise submission:check dies before real validation starts.
+    shell: process.platform === "win32"
   });
 
   if (result.error) {

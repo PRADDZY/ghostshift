@@ -12,7 +12,6 @@ import type {
 const {
   Args,
   CLValue,
-  ContractHash,
   Deploy,
   DeployHeader,
   ExecutableDeployItem,
@@ -20,7 +19,7 @@ const {
   KeyAlgorithm,
   PrivateKey,
   RpcClient,
-  StoredContractByHash
+  StoredContractByName
 } = CasperSdk;
 
 import type { AgentRole, LedgerMode, LedgerReceipt } from "@ghostshift/shared";
@@ -66,6 +65,8 @@ export interface LedgerAdapter {
   readonly mode: LedgerMode;
   recordReceipt(input: LedgerEntryInput): Promise<LedgerReceipt>;
 }
+
+const ledgerContractName = "ghostshift_ledger_hash";
 
 function hashText(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -170,8 +171,9 @@ function makeReceiptDeploy(
   input: LedgerEntryInput
 ): CasperDeploy {
   const session = new ExecutableDeployItem();
-  session.storedContractByHash = new StoredContractByHash(
-    ContractHash.newContract(config.contractHash),
+  // ponytail: this install publishes the callable contract in the signer's named keys, so call it by name.
+  session.storedContractByName = new StoredContractByName(
+    ledgerContractName,
     "record_receipt",
     Args.fromMap({
       mission_id: CLValue.newCLString(input.missionId),
