@@ -15,6 +15,27 @@ import {
 const { AccountIdentifier, Args, Deploy, DeployHeader, ExecutableDeployItem, ModuleBytes } = CasperSdk;
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 
+function getExecutionErrorMessage(result: unknown): string | undefined {
+  const executionInfoError =
+    typeof result === "object" && result !== null
+      ? (result as { executionInfo?: { executionResult?: { errorMessage?: string } } }).executionInfo?.executionResult
+          ?.errorMessage
+      : undefined;
+
+  if (executionInfoError) {
+    return executionInfoError;
+  }
+
+  const v1Error =
+    typeof result === "object" && result !== null
+      ? (result as { executionResultsV1?: Array<{ errorMessage?: string }> }).executionResultsV1?.find((entry) =>
+          Boolean(entry.errorMessage)
+        )?.errorMessage
+      : undefined;
+
+  return v1Error;
+}
+
 async function main() {
   const env = {
     ...(process.env as GhostShiftEnv),
@@ -32,7 +53,7 @@ async function main() {
     process.env.GHOSTSHIFT_LEDGER_WASM_PATH ??
       join(repoRoot, "contracts", "ghostshift-ledger", "target", "wasm32-unknown-unknown", "release", "ghostshift_ledger.wasm")
   );
-  const paymentMotes = process.env.GHOSTSHIFT_LEDGER_INSTALL_PAYMENT_MOTES?.trim() || "40000000000";
+  const paymentMotes = process.env.GHOSTSHIFT_LEDGER_INSTALL_PAYMENT_MOTES?.trim() || "80000000000";
 
   const wasm = new Uint8Array(await readFile(wasmPath));
   const key = await loadCasperPrivateKey(config);
@@ -53,6 +74,12 @@ async function main() {
 
   console.log(`Install deploy submitted: ${deployHash}`);
   await waitForDeployExecution(client, deployHash, 45, 4_000);
+
+  const deployResult = await client.getDeploy(deployHash);
+  const executionError = getExecutionErrorMessage(deployResult);
+  if (executionError) {
+    throw new Error(`Install deploy executed but failed: ${executionError}`);
+  }
 
   const accountInfo = await client.getAccountInfo(null, new AccountIdentifier(undefined, key.publicKey));
   const contractKey = accountInfo.account.namedKeys.find((entry) => entry.name === "ghostshift_ledger_hash");
