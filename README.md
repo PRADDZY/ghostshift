@@ -75,6 +75,7 @@ Available tools:
 ```powershell
 pnpm test
 pnpm build
+pnpm submission:check
 ```
 
 ## Casper ledger mode
@@ -99,7 +100,9 @@ Useful helpers:
 
 - `pnpm casper:keygen` writes an ignored Ed25519 keypair to `contracts/ghostshift-ledger/keys/`.
 - `pnpm casper:deploy-contract` installs the Wasm contract and prints the resulting `GHOSTSHIFT_LEDGER_CONTRACT_HASH=...` line once the deploy lands.
-- `pnpm deploy:worker` publishes the Worker once Wrangler auth and the real D1 database ID are configured.
+- `pnpm cf:d1:migrate:live` applies the remote D1 schema for the `live` Worker environment.
+- `pnpm deploy:worker:live` publishes the `live` Worker once Wrangler auth, the private key secret, and real D1 IDs are configured.
+- `pnpm submission:check` proves the public Worker is live in Casper mode and can complete a single-lane mission with real explorer links.
 
 ## Launch stack flow
 
@@ -132,15 +135,17 @@ The Windows helper script auto-adds a WinLibs `mingw64/bin` install to `PATH` wh
 
 ## Cloudflare deploy checklist
 
-- Update `apps/server/wrangler.jsonc` with the real D1 database IDs.
+- Update `apps/server/wrangler.jsonc` under `env.live` with the real D1 database IDs, contract hash, and public Workers URL.
 - Put live private key material into Wrangler secrets instead of files:
-  `wrangler secret put GHOSTSHIFT_PRIVATE_KEY_PEM`
-- Apply remote D1 migrations with `pnpm cf:d1:migrate`.
-- Deploy with `pnpm deploy:worker`.
+  `wrangler secret put GHOSTSHIFT_PRIVATE_KEY_PEM --env live`
+- Apply remote D1 migrations with `pnpm cf:d1:migrate:live`.
+- Deploy with `pnpm deploy:worker:live`.
+- Run `pnpm submission:check`.
+- Use `SUBMISSION.md` as the final operator checklist.
 
 ## Honest status
 
 - Verified here:
   Node demo, web build, MCP entrypoint, Worker boot, local D1 migration, Worker mission lifecycle, Worker deploy dry-run, and Casper Wasm compilation.
 - Still manual:
-  funding a Casper testnet key, running the real contract install, setting Wrangler auth plus real D1 IDs, and recording a public demo/submission package.
+  Wrangler auth, creating the live D1 database, funding a Casper testnet key, running the real contract install, uploading the live Worker secret, deploying the public Worker, and recording the demo/submission package.

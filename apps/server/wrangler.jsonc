@@ -19,5 +19,30 @@
       "preview_database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "migrations"
     }
-  ]
+  ],
+  "env": {
+    "live": {
+      "vars": {
+        "GHOSTSHIFT_LEDGER_MODE": "casper",
+        "GHOSTSHIFT_CHAIN_NAME": "casper-test",
+        "GHOSTSHIFT_RPC_URL": "https://node.testnet.casper.network/rpc",
+        "GHOSTSHIFT_PRIVATE_KEY_ALGORITHM": "ed25519",
+        "GHOSTSHIFT_LEDGER_PAYMENT_MOTES": "3000000000",
+        "GHOSTSHIFT_LEDGER_CONTRACT_HASH": "hash-REPLACE_WITH_CASPER_CONTRACT_HASH",
+        "GHOSTSHIFT_PUBLIC_BASE_URL": "https://ghostshift-api-live.REPLACE_WITH_SUBDOMAIN.workers.dev"
+      },
+      "secrets": {
+        "required": ["GHOSTSHIFT_PRIVATE_KEY_PEM"]
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "ghostshift-live",
+          "database_id": "00000000-0000-0000-0000-000000000000",
+          "preview_database_id": "00000000-0000-0000-0000-000000000000",
+          "migrations_dir": "migrations"
+        }
+      ]
+    }
+  }
 }

@@ -8,11 +8,14 @@
     "casper:deploy-contract": "tsx scripts/deploy-ledger.ts",
     "casper:keygen": "tsx scripts/create-demo-key.ts",
     "cf:d1:migrate": "wrangler d1 migrations apply ghostshift --remote",
+    "cf:d1:migrate:live": "wrangler d1 migrations apply DB --remote --env live",
     "cf:d1:migrate:local": "wrangler d1 migrations apply ghostshift --local",
     "cf:deploy": "wrangler deploy",
+    "cf:deploy:live": "wrangler deploy --env live",
     "cf:dev": "wrangler dev",
     "dev": "tsx watch src/index.ts",
     "mcp": "tsx src/mcp.ts",
+    "submission:check": "tsx scripts/check-submission.ts",
     "test": "tsx --test src/**/*.test.ts"
   },
   "dependencies": {
