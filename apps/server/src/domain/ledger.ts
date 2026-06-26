@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isAbsolute, resolve } from "node:path";
 
 import CasperSdk from "casper-js-sdk";
 import type {
@@ -102,7 +103,24 @@ async function readPrivateKeyPem(config: CasperConnectionConfig): Promise<string
   }
 
   const { readFile } = await import("node:fs/promises");
-  return readFile(config.secretKeyPath, "utf8");
+  const candidates = [config.secretKeyPath];
+  const initCwd = process.env.INIT_CWD?.trim();
+
+  // ponytail: pnpm workspace scripts run from the package cwd, so we also try the original repo-root cwd.
+  if (initCwd && !isAbsolute(config.secretKeyPath)) {
+    candidates.push(resolve(initCwd, config.secretKeyPath));
+  }
+
+  let lastError: unknown;
+  for (const candidate of new Set(candidates)) {
+    try {
+      return await readFile(candidate, "utf8");
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  throw lastError;
 }
 
 export async function loadCasperPrivateKey(config: CasperConnectionConfig): Promise<CasperPrivateKey> {
