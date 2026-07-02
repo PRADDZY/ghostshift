@@ -141,22 +141,3 @@ Build it with:
 ```powershell
 pnpm casper:build-contract
 ```
-
-The Windows helper script auto-adds a WinLibs `mingw64/bin` install to `PATH` when it finds one. This workspace was verified with that flow plus the `wasm32-unknown-unknown` target installed for the pinned nightly toolchain.
-
-## Cloudflare deploy checklist
-
-- Update `apps/server/wrangler.jsonc` under `env.live` with the real D1 database IDs, contract hash, and public Workers URL.
-- Put live private key material into Wrangler secrets instead of files:
-  `wrangler secret put GHOSTSHIFT_PRIVATE_KEY_PEM --env live`
-- Apply remote D1 migrations with `pnpm cf:d1:migrate:live`.
-- Deploy with `pnpm deploy:worker:live`.
-- Run `pnpm submission:check`.
-- Use `SUBMISSION.md` as the final operator checklist.
-
-## Honest status
-
-- Verified here:
-  Node demo, web build, MCP entrypoint, Worker boot, local D1 migration, remote D1 migration, Worker mission lifecycle, live Worker deploy, Casper Wasm compilation, and `pnpm submission:check` with live explorer URLs.
-- Still manual:
-  Wrangler auth, creating the live D1 database, funding a Casper testnet key, running the real contract install, uploading the live Worker secret, and recording the demo package.
