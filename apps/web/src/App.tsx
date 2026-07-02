@@ -15,7 +15,8 @@ import {
   type Vendor
 } from "@ghostshift/shared";
 
-const apiBase = (import.meta.env.VITE_API_BASE_URL ?? "").replace(/\/$/, "");
+const liveApiBase = "https://ghostshift-api-live.dpratik3005.workers.dev";
+const apiBase = (import.meta.env.VITE_API_BASE_URL ?? (import.meta.env.DEV ? "" : liveApiBase)).replace(/\/$/, "");
 
 function createInitialInput(): MissionInput {
   return {
@@ -326,6 +327,15 @@ export function App() {
   const pinnedDifferent =
     Boolean(marketSnapshot && pinnedSnapshot) && marketSnapshot?.id !== pinnedSnapshot?.id;
   const liveReceipts = mission?.receipts.filter((receipt) => receipt.mode === "casper") ?? [];
+  const explorerLinks = [
+    ...new Set(
+      liveReceipts
+        .map((receipt) => receipt.explorerUrl)
+        .filter((value): value is string => Boolean(value))
+    )
+  ]
+    .slice(-2)
+    .reverse();
   const isLegacyApproval = (mission?.requiredLanes.length ?? input.requiredLanes?.length ?? 0) === 0;
 
   return (
@@ -367,6 +377,40 @@ export function App() {
               {statusNote ??
                 "Refresh the evidence pack, launch a desk with that snapshot, then run the negotiation arena to see where each lane lands."}
             </p>
+          </div>
+
+          <div className="judge-strip">
+            <div className="judge-strip-head">
+              <span>Proof path</span>
+              <strong>3 steps to live Casper proof</strong>
+            </div>
+            <div className="judge-step-grid">
+              <article className="judge-step">
+                <span>01</span>
+                <strong>Open Desk</strong>
+                <p>Pin the current evidence snapshot and start a live procurement run.</p>
+                <em>{mission ? "done" : "next"}</em>
+              </article>
+              <article className="judge-step">
+                <span>02</span>
+                <strong>Run Negotiation</strong>
+                <p>Pick lane winners across browser, telemetry, auth, and knowledge.</p>
+                <em>{mission && mission.status !== "draft" ? "done" : "waiting"}</em>
+              </article>
+              <article className="judge-step">
+                <span>03</span>
+                <strong>Seal on Casper</strong>
+                <p>Approve the stack and surface live deploy links in the proof rail.</p>
+                <em>
+                  {mission?.status === "completed"
+                    ? "done"
+                    : mission?.status === "review"
+                      ? "ready"
+                      : "locked"}
+                </em>
+              </article>
+            </div>
+            <p className="product-note">Live frontend. Live Worker backend. Casper receipts appear after final approval.</p>
           </div>
         </div>
 
@@ -478,10 +522,10 @@ export function App() {
 
           <div className="action-row">
             <button disabled={loading || marketLoading} onClick={createMission}>
-              {mission ? "Open another desk" : "Launch buying desk"}
+              Open Desk
             </button>
             <button className="secondary" disabled={marketLoading || loading} onClick={refreshEvidence}>
-              {marketLoading ? "Refreshing..." : "Refresh evidence pack"}
+              {marketLoading ? "Refreshing..." : "Refresh Evidence"}
             </button>
           </div>
 
@@ -529,13 +573,13 @@ export function App() {
 
       <section className="control-strip">
         <button disabled={!mission || loading || mission.status === "running"} onClick={runMission}>
-          {loading && mission?.status === "running" ? "Running..." : "Run negotiation arena"}
+          {loading && mission?.status === "running" ? "Running..." : "Run Negotiation"}
         </button>
         <button disabled={!mission || mission.status !== "review" || loading} onClick={() => approveMission()}>
-          Approve launch stack
+          Seal on Casper
         </button>
         <button className="secondary" disabled={!mission || loading} onClick={refreshMission}>
-          Refresh desk
+          Refresh Desk
         </button>
       </section>
 
@@ -561,6 +605,22 @@ export function App() {
                   ? "The market has a newer live pack, but this mission remains pinned to its original snapshot."
                   : "The active mission and the current market pack are aligned."}
               </p>
+            </article>
+
+            <article className="proof-card">
+              <span>Explorer proof</span>
+              <strong>{explorerLinks.length > 0 ? `${explorerLinks.length} live deploys` : "Pending"}</strong>
+              {explorerLinks.length > 0 ? (
+                <div className="proof-links">
+                  {explorerLinks.map((link) => (
+                    <a key={link} className="citation-link" href={link} target="_blank" rel="noreferrer">
+                      Casper deploy / {shortId(link)}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p>Seal the desk to surface live Casper deploy links here.</p>
+              )}
             </article>
 
             <article className="proof-card">

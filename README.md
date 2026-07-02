@@ -2,6 +2,11 @@
 
 GhostShift is a Casper-native evidence-and-negotiation buying desk for agents. You open a temporary company with a capped treasury, pin a market evidence snapshot, let specialist agents source the browser, telemetry, auth, and knowledge stack under a signed mandate, and dissolve the desk with a permanent ledger trail.
 
+## Live surface
+
+- Frontend: `https://ghostshift.pages.dev`
+- Worker API: `https://ghostshift-api-live.dpratik3005.workers.dev`
+
 ## What it does
 
 - `Lead` opens a mission, defines the treasury plus mandate, and pins the evidence snapshot.
@@ -15,7 +20,7 @@ The current demo mission is a launch-day sourcing run across browser automation,
 ## Repo layout
 
 - `apps/server` - HTTP API, mission engine, vendor market, ledger adapter, MCP server
-- `apps/web` - evidence-and-negotiation war room for judges
+- `apps/web` - public evidence-and-negotiation desk
 - `packages/shared` - shared mission, vendor, spend, and receipt types
 - `contracts/ghostshift-ledger` - minimal Casper receipt contract scaffold
 
@@ -154,4 +159,4 @@ The Windows helper script auto-adds a WinLibs `mingw64/bin` install to `PATH` wh
 - Verified here:
   Node demo, web build, MCP entrypoint, Worker boot, local D1 migration, remote D1 migration, Worker mission lifecycle, live Worker deploy, Casper Wasm compilation, and `pnpm submission:check` with live explorer URLs.
 - Still manual:
-  Wrangler auth, creating the live D1 database, funding a Casper testnet key, running the real contract install, uploading the live Worker secret, deploying the public Worker, and recording the demo/submission package.
+  Wrangler auth, creating the live D1 database, funding a Casper testnet key, running the real contract install, uploading the live Worker secret, and recording the demo package.

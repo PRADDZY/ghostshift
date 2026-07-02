@@ -1,6 +1,6 @@
 # GhostShift Submission Runbook
 
-GhostShift is submission-ready when the repo is public, the Worker is live, and `pnpm submission:check` produces real Casper explorer links.
+GhostShift is go-live ready when the repo is public, the frontend is live, the Worker is live, and `pnpm submission:check` produces real Casper explorer links.
 
 ## Go-Live Checklist
 
@@ -87,7 +87,7 @@ GhostShift is a Casper-native evidence-backed buying desk for agents: it pins a 
 
 - Most agent demos stop at recommendations; GhostShift turns agent procurement into a signed treasury workflow with approval, spend caps, negotiation rounds, and receipts.
 - The desk does not rely on static vendor blurbs: it can refresh a public evidence pack from official vendor pages, then pin that snapshot into the mission.
-- The product frames vendor selection as a temporary operating company, which is more legible to judges than another generic agent dashboard.
+- The product frames vendor selection as a temporary operating company, which is more legible to operators and finance owners than another generic agent dashboard.
 - Casper is not decorative here: the close-out of the desk and the spend trail are the trust layer, so the prototype can prove that agents stayed inside a mandate.
 
 ### Demo proof points
@@ -101,9 +101,10 @@ GhostShift is a Casper-native evidence-backed buying desk for agents: it pins a 
 ## Evidence To Paste Before Submission
 
 - Repo URL: `https://github.com/PRADDZY/ghostshift`
-- Live app URL: `https://ghostshift-api-live.dpratik3005.workers.dev`
+- Live app URL: `https://ghostshift.pages.dev`
+- Live API URL: `https://ghostshift-api-live.dpratik3005.workers.dev`
 - Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
 - Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
-- Explorer URL 1: `https://testnet.cspr.live/deploy/0f27a6d027841aaae28cdda7663efbd0056bbcec53f651d4990ceeae01d2152a`
-- Explorer URL 2: `https://testnet.cspr.live/deploy/f4d1a4b588173dcac53c1d9a3c0145d546ed6fe460b684322a85019a4f892ee4`
-- Submission check timestamp: `2026-06-26T19:40:54.3729506+05:30`
+- Explorer URL 1: `https://testnet.cspr.live/deploy/c0ac85fa0f73b1c46cfc2bc1d4348913b843a6d0722696a59ba8b7a8cdd3968f`
+- Explorer URL 2: `https://testnet.cspr.live/deploy/d03f5a1610d6aa6cca2d08230776ec83aaea6b296f73b6d10a91a3b3b54ad99f`
+- Submission check timestamp: `2026-07-02T14:50:24.3887752+05:30`

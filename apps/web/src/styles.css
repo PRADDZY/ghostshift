@@ -154,7 +154,6 @@ h1 {
 }
 
 .hero-stat-row,
-.proof-grid,
 .mandate-grid,
 .cap-grid,
 .lane-cap-grid,
@@ -162,6 +161,12 @@ h1 {
 .overview-grid {
   display: grid;
   gap: 16px;
+}
+
+.proof-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .hero-stat-row {
@@ -196,6 +201,67 @@ h1 {
 
 .status-banner strong {
   font-size: 1.08rem;
+}
+
+.judge-strip {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(17, 14, 10, 0.08);
+  background: rgba(255, 255, 255, 0.24);
+  display: grid;
+  gap: 14px;
+}
+
+.judge-strip-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.judge-strip-head span,
+.judge-step span {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.74rem;
+}
+
+.judge-step-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.judge-step {
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(17, 14, 10, 0.08);
+  background: rgba(17, 14, 10, 0.05);
+  display: grid;
+  gap: 8px;
+}
+
+.judge-step strong {
+  font-size: 1.02rem;
+}
+
+.judge-step p,
+.product-note {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.judge-step em {
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  opacity: 0.72;
+}
+
+.product-note {
+  opacity: 0.82;
 }
 
 .status-flag {
@@ -378,7 +444,6 @@ textarea:focus {
   overflow: hidden;
 }
 
-.proof-grid,
 .mandate-grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
@@ -388,6 +453,7 @@ textarea:focus {
 }
 
 .proof-vendor-list,
+.proof-links,
 .stack-list,
 .lane-stack,
 .timeline,
@@ -552,7 +618,8 @@ textarea:focus {
   .proof-grid,
   .mandate-grid,
   .vendor-grid,
-  .arena-strip {
+  .arena-strip,
+  .judge-step-grid {
     grid-template-columns: 1fr;
   }
 }
