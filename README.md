@@ -20,8 +20,8 @@ Reference proof:
 
 - Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
 - Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
-- Sample live receipt 1: `https://testnet.cspr.live/deploy/850bb46b755111719111ac4821259b268e12a34a0ad7ce23db2572384ce410f6`
-- Sample live receipt 2: `https://testnet.cspr.live/deploy/25743b63df670941ce4ccae9b1ddf6ab245e65f4a7595ad45d66147b2104e7a3`
+- Sample live receipt 1: `https://testnet.cspr.live/deploy/69c13bda94b47bb368db4f4268e2da3ee715b8dfe30e3095822946d5f7879f75`
+- Sample live receipt 2: `https://testnet.cspr.live/deploy/ced39d0e0568d1d6652878b9a48cc9daf9124473d047f524676c25bda883c086`
 
 ## What it does
 
