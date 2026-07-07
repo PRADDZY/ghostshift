@@ -1,5 +1,7 @@
 #![no_std]
 #![no_main]
+#![allow(internal_features)]
+#![feature(alloc_error_handler, core_intrinsics, lang_items)]
 
 extern crate alloc;
 
@@ -21,6 +23,11 @@ use casper_types::{
     CLType, Key, Parameter,
 };
 
+// ponytail: casper-contract's default no_std helpers pull in wee_alloc, so we keep the allocator
+// and abort handlers local and tiny.
+#[global_allocator]
+static ALLOC: dlmalloc::GlobalDlmalloc = dlmalloc::GlobalDlmalloc;
+
 const RECEIPTS_DICT: &str = "receipts";
 const LAST_RECEIPT_KEY: &str = "last_receipt_key";
 const HASH_NAME: &str = "ghostshift_ledger_hash";
@@ -32,6 +39,19 @@ const ARG_ROLE: &str = "role";
 const ARG_AMOUNT_MOTES: &str = "amount_motes";
 const ARG_PROOF_HASH: &str = "proof_hash";
 const ARG_STATUS: &str = "status";
+
+#[panic_handler]
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    core::intrinsics::abort()
+}
+
+#[alloc_error_handler]
+fn oom(_: core::alloc::Layout) -> ! {
+    core::intrinsics::abort()
+}
+
+#[lang = "eh_personality"]
+extern "C" fn eh_personality() {}
 
 #[no_mangle]
 pub extern "C" fn record_receipt() {

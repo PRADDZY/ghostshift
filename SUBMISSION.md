@@ -2,6 +2,24 @@
 
 GhostShift is go-live ready when the repo is public, the frontend is live, the Worker is live, and `pnpm submission:check` produces real Casper explorer links.
 
+## Reviewer Playbook
+
+1. Open `https://ghostshift.pages.dev`.
+2. Click `Refresh Evidence` to mint a fresh market snapshot.
+3. Click `Open Desk` to pin that snapshot.
+4. Click `Run Negotiation` and wait for the desk to reach review.
+5. Click `Seal on Casper`.
+6. Open the newest `Receipt rail` links and confirm both Casper explorer deploy pages load.
+
+Use these proof links while reviewing:
+
+- Live app: `https://ghostshift.pages.dev`
+- Live API: `https://ghostshift-api-live.dpratik3005.workers.dev`
+- Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
+- Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
+- Sample live receipt 1: `https://testnet.cspr.live/deploy/850bb46b755111719111ac4821259b268e12a34a0ad7ce23db2572384ce410f6`
+- Sample live receipt 2: `https://testnet.cspr.live/deploy/25743b63df670941ce4ccae9b1ddf6ab245e65f4a7595ad45d66147b2104e7a3`
+
 ## Go-Live Checklist
 
 1. Install dependencies and sign into Cloudflare:
@@ -103,8 +121,8 @@ GhostShift is a Casper-native evidence-backed buying desk for agents: it pins a 
 - Repo URL: `https://github.com/PRADDZY/ghostshift`
 - Live app URL: `https://ghostshift.pages.dev`
 - Live API URL: `https://ghostshift-api-live.dpratik3005.workers.dev`
-- Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
-- Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
-- Explorer URL 1: `https://testnet.cspr.live/deploy/c0ac85fa0f73b1c46cfc2bc1d4348913b843a6d0722696a59ba8b7a8cdd3968f`
-- Explorer URL 2: `https://testnet.cspr.live/deploy/d03f5a1610d6aa6cca2d08230776ec83aaea6b296f73b6d10a91a3b3b54ad99f`
-- Submission check timestamp: `2026-07-02T14:50:24.3887752+05:30`
+- Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989` - live Casper ledger contract used by the Worker.
+- Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11` - deploy that installed the onchain receipt contract.
+- Explorer URL 1: `https://testnet.cspr.live/deploy/850bb46b755111719111ac4821259b268e12a34a0ad7ce23db2572384ce410f6` - sample browser-lane receipt from a live qualification smoke mission.
+- Explorer URL 2: `https://testnet.cspr.live/deploy/25743b63df670941ce4ccae9b1ddf6ab245e65f4a7595ad45d66147b2104e7a3` - sample desk-close receipt from the same live smoke mission.
+- Submission check timestamp: `2026-07-07T21:08:45.7021172+05:30`

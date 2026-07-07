@@ -214,6 +214,12 @@ async function main(): Promise<void> {
     fail(`Expected ${baseUrl}/api/health to report ledgerMode=casper.`);
   }
 
+  logStep("Refreshing the live evidence pack.");
+  await fetchJson(`${baseUrl}/api/evidence/refresh`, {
+    method: "POST",
+    body: JSON.stringify({})
+  });
+
   logStep("Running a single-lane live Casper smoke mission.");
   const mission = await fetchJson<MissionResponse>(`${baseUrl}/api/missions`, {
     method: "POST",

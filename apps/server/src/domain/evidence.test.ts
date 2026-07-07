@@ -34,3 +34,21 @@ test("evidence refresh builds a live snapshot with extracted pricing and securit
   assert.equal(browserVendor?.securitySummary.toLowerCase().includes("soc 2"), true);
   assert.equal((browserVendor?.citations.length ?? 0) > 0, true);
 });
+
+test("evidence refresh keeps curated baseline confidence when live fetches fail", async () => {
+  const tempDir = await mkdtemp(join(tmpdir(), "ghostshift-evidence-"));
+  const evidenceFile = join(tempDir, "evidence.json");
+  await writeFile(evidenceFile, "[]\n");
+
+  const fetchImpl: typeof fetch = async () => {
+    throw new Error("vendor page blocked");
+  };
+
+  const service = new MarketResearchService(new FileEvidenceSnapshotStore(evidenceFile), fetchImpl);
+  const snapshot = await service.refreshSnapshot();
+  const browserVendor = snapshot.vendors.find((entry) => entry.vendorId === "browserbase");
+
+  assert.equal(snapshot.mode, "live");
+  assert.equal(browserVendor?.confidenceScore, 72);
+  assert.equal((browserVendor?.citations.length ?? 0) > 0, true);
+});

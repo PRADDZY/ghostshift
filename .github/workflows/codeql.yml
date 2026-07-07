@@ -1,0 +1,59 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "21 5 * * 1"
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, rust]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: manual
+
+      - uses: pnpm/action-setup@v4
+        if: matrix.language == 'javascript-typescript'
+        with:
+          version: 10.10.0
+
+      - uses: actions/setup-node@v4
+        if: matrix.language == 'javascript-typescript'
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+        if: matrix.language == 'javascript-typescript'
+
+      - run: pnpm build
+        if: matrix.language == 'javascript-typescript'
+
+      - uses: dtolnay/rust-toolchain@nightly
+        if: matrix.language == 'rust'
+        with:
+          toolchain: nightly-2024-07-31
+          targets: wasm32-unknown-unknown
+
+      - run: cargo +nightly-2024-07-31 build --manifest-path contracts/ghostshift-ledger/Cargo.toml --target wasm32-unknown-unknown --release
+        if: matrix.language == 'rust'
+
+      - uses: github/codeql-action/analyze@v3

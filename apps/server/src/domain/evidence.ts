@@ -206,7 +206,9 @@ export class MarketResearchService {
       return 70;
     }
 
-    return 55;
+    // ponytail: when live fetches fail, fall back to the curated seed baseline instead of making
+    // the whole lane unusable on transient vendor-site issues.
+    return 72;
   }
 }
 

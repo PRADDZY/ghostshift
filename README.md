@@ -7,6 +7,22 @@ GhostShift is a Casper-native evidence-and-negotiation buying desk for agents. Y
 - Frontend: `https://ghostshift.pages.dev`
 - Worker API: `https://ghostshift-api-live.dpratik3005.workers.dev`
 
+## Reviewer Playbook
+
+1. Open `https://ghostshift.pages.dev`.
+2. Click `Refresh Evidence` to mint a current market snapshot.
+3. Click `Open Desk` to pin that snapshot.
+4. Click `Run Negotiation` to generate lane-by-lane offers for browser, telemetry, auth, and knowledge vendors.
+5. Once the desk reaches review, click `Seal on Casper`.
+6. Open the newest `Receipt rail` links and verify the Casper explorer receipts.
+
+Reference proof:
+
+- Contract hash: `hash-6f770642967df494b3304840279f145d6dc95511dc53dd3e96a0ff0381517989`
+- Contract install deploy: `https://testnet.cspr.live/deploy/162fce749a0f84b209b25192ca4cf7f984eef35bb2751e8984950bb683d31c11`
+- Sample live receipt 1: `https://testnet.cspr.live/deploy/850bb46b755111719111ac4821259b268e12a34a0ad7ce23db2572384ce410f6`
+- Sample live receipt 2: `https://testnet.cspr.live/deploy/25743b63df670941ce4ccae9b1ddf6ab245e65f4a7595ad45d66147b2104e7a3`
+
 ## What it does
 
 - `Lead` opens a mission, defines the treasury plus mandate, and pins the evidence snapshot.
@@ -83,6 +99,7 @@ Available tools:
 ```powershell
 pnpm test
 pnpm build
+pnpm casper:build-contract
 pnpm submission:check
 ```
 
